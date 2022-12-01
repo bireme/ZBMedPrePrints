@@ -16,7 +16,7 @@ case class PPZBMedXml_Parameters(xmlOut: String,
 
 class Main {
 
-  def exportXml(parameters: PPZBMedXml_Parameters): Try[Unit] = {
+  private def exportXml(parameters: PPZBMedXml_Parameters): Try[Unit] = {
     Try {
       val mExport: MongoExport = new MongoExport(parameters.database, parameters.collection, parameters.host, parameters.port)
       val docsMongo: Seq[Document] = mExport.findAll
