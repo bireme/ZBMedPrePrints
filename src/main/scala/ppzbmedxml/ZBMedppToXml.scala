@@ -5,9 +5,10 @@ import org.mongodb.scala.Document
 
 import java.io.BufferedWriter
 import java.nio.file.{Files, Paths}
+import java.util.Date
 import scala.util.{Failure, Success, Try}
 import scala.xml.{Elem, PrettyPrinter, XML}
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 
 private case class ZBMedpp_doc(id: String,
@@ -37,9 +38,13 @@ class ZBMedPP{
 
   def toXml(docsMongo: Seq[Document], pathOut: String): Try[Unit] = {
     Try{
+
+      println(s"\n|ZBMed preprints - Migration started: ${new Date()}")
+      println(s"|Total documents: ${docsMongo.length}")
+
       generateXml(docsMongo.map(f => mapElements(f)), pathOut) match {
-        case Success(_) => println(s"\nLoading elements in the file generated in: $pathOut")
-        case Failure(_) => println(s"\nXml generation Failed!")
+        case Success(_) => ()
+        case Failure(_) => println(s"\n|Xml generation Failed!")
       }
     }
   }
@@ -54,7 +59,7 @@ class ZBMedPP{
     val pu: String = doc.getString("source")
     val ti: String = doc.getString("title").replace("<", "&lt;").replace(">","&gt;")
     val doi: String = doc.getString("id")
-    val link: Seq[String] = fieldToSeq(doc, "link")
+    val link: Seq[String] = fieldToSeq(doc, "link").filter(_ != doc.getString("pdfLink"))
     val linkPdf: Seq[String] = fieldToSeq(doc, "pdfLink")
     val fullText: String = if (link.nonEmpty | linkPdf.nonEmpty) "1" else ""
     val ab: String = doc.getString("abstract").replace("<", "&lt;").replace(">","&gt;")
@@ -73,7 +78,6 @@ class ZBMedPP{
       case field if field.isString => Seq(doc.getString(nameField))
     }
   }
-
 
   private def generateXml(elements: Seq[ZBMedpp_doc], pathOut: String): Try[Unit] = {
     Try{

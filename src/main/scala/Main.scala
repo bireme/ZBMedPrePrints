@@ -2,7 +2,7 @@ import mongodb.MongoExport
 import org.mongodb.scala.Document
 import ppzbmedxml.ZBMedPP
 
-import java.util.Calendar
+import java.util.Date
 import scala.util.{Failure, Success, Try}
 
 
@@ -22,8 +22,8 @@ class Main {
       val docsMongo: Seq[Document] = mExport.findAll
 
       new ZBMedPP().toXml(docsMongo, parameters.xmlOut) match {
-        case Success(_) => println(s"FILE GENERATED SUCCESSFULLY")
-        case Failure(e) => println(s"FAILURE TO GENERATE FILE: $e")
+        case Success(_) => println(s"|FILE GENERATED SUCCESSFULLY IN: ${parameters.xmlOut}")
+        case Failure(e) => println(s"|FAILURE TO GENERATE FILE: $e")
       }
     }
   }
@@ -62,16 +62,19 @@ object Main {
     val password: Option[String] = parameters.get("password")
 
     val params: PPZBMedXml_Parameters = PPZBMedXml_Parameters(xmlOut, database, collection, host, port, user, password)
-    val time1: Long = Calendar.getInstance().getTimeInMillis
+    val startDate: Date = new Date()
 
     (new Main).exportXml(params) match {
       case Success(_) =>
-        println("Finished!")
-        val time2: Long = Calendar.getInstance().getTime.getTime
-        println(s"Processing time=${time2 - time1}ms\n")
+        val endDate: Date = new Date()
+        val elapsedTime: Long = endDate.getTime - startDate.getTime
+        val seconds0: Long = elapsedTime / 1000
+        val minutes: Long = seconds0 / 60
+        val seconds: Long = seconds0 % 60
+        println(s"|Processing time: ${minutes}min e ${seconds}s\n")
         System.exit(0)
       case Failure(exception) =>
-        println(s"Error: ${exception.toString}\n")
+        println(s"|Error: ${exception.toString}\n")
         System.exit(1)
     }
   }
