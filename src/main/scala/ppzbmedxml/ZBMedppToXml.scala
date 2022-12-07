@@ -12,6 +12,7 @@ import scala.xml.{Elem, PrettyPrinter, XML}
 
 
 private case class ZBMedpp_doc(id: String,
+                               alternateId: String,
                                db: String,
                                dbSource: String,
                                instance: String,
@@ -20,7 +21,7 @@ private case class ZBMedpp_doc(id: String,
                                //la: String,                             ***Dado indisponível***
                                pu: String,
                                ti: String,
-                               doi: String,
+                               aid: String,
                                ur: Seq[String],
                                urPdf: Seq[String],
                                fulltext: String,
@@ -56,7 +57,8 @@ class ZBMedPP {
   private def mapElements(doc: Document): Try[ZBMedpp_doc] ={
     Try{
 
-      val id: String = getId(doc)
+      val id: String = s"ppzbmed-${doc.get("_id").get.asObjectId().getValue}"
+      val alternateId: String = getIdAlternate(doc)
       val bd: String = "PREPRINT-ZBMED"
       val bdSource: String = s"PREPRINT-${doc.getString("source").toUpperCase}"
       val instance: String = "regional"
@@ -64,7 +66,7 @@ class ZBMedPP {
       val typeTmp: String = "preprint"
       val pu: String = doc.getString("source")
       val ti: String = doc.getString("title").replace("<", "&lt;").replace(">", "&gt;")
-      val doi: String = doc.getString("id")
+      val aid: String = doc.getString("id")
       val link: Seq[String] = fieldToSeq(doc, "link").filter(_ != doc.getString("pdfLink"))
       val linkPdf: Seq[String] = fieldToSeq(doc, "pdfLink")
       val fullText: String = if (link.nonEmpty | linkPdf.nonEmpty) "1" else ""
@@ -73,18 +75,18 @@ class ZBMedPP {
       val entryDate: String = doc.getString("date").split("T").head.replace("-", "")
       val da: String = entryDate.substring(0, 6)
 
-      ZBMedpp_doc(id, bd, bdSource, instance, collection, typeTmp, pu, ti, doi, link, linkPdf, fullText, ab, au, entryDate, da)
+      ZBMedpp_doc(id, alternateId, bd, bdSource, instance, collection, typeTmp, pu, ti, aid, link, linkPdf, fullText, ab, au, entryDate, da)
     }
   }
 
-  private def getId(doc: Document): String = {
+  private def getIdAlternate(doc: Document): String = {
 
     val source: String = doc.getString("source")
     /**sources: medrxiv, biorxiv, arxiv, researchsquare, ssrn, chemrxiv, preprints.org, psyarxiv, biohackrxiv, beilstein archives, authorea preprints*/
     source match {
-      case "medrxiv" => s"ppzbmed-${doc.getString("id").split("[/.]").reverse.head}" //"Ex.'id' = 10.1101/2020.05.08.20092080"
-      case "biorxiv" => s"ppmedrxiv-${doc.getString("id").split("[/.]").reverse.head}" //"Ex.'id' = 10.1101/2020.04.05.026146"
-      case _ => s"ppzbmed-${doc.get("_id").get.asObjectId().getValue.toString.substring(0, 7)}"
+      case "medrxiv" => s"ppmedrxiv-${doc.getString("id").split("[/.]").reverse.head}" //"Ex.'id' = 10.1101/2020.05.08.20092080"
+      case "biorxiv" => s"ppbiorxiv-${doc.getString("id").split("[/.]").reverse.head}" //"Ex.'id' = 10.1101/2020.04.05.026146"
+      case _ => s"ppzbmed-${doc.get("_id").get.asObjectId().getValue}"
     }
   }
 
@@ -109,8 +111,8 @@ class ZBMedPP {
   private def generateXml(elements: Seq[ZBMedpp_doc], pathOut: String): Try[Unit] = {
     Try{
       val xmlPath: BufferedWriter = Files.newBufferedWriter(Paths.get(pathOut))
-      val printer = new PrettyPrinter(50000, 0)
-      val xmlFormat =
+      val printer: PrettyPrinter = new PrettyPrinter(50000, 0)
+      val xmlFormat: Elem =
         <add>
           {elements.map(f => docToElem(f))}
         </add>
@@ -125,6 +127,7 @@ class ZBMedPP {
 
   <doc>
     <field name={"id"}>{fields.id}</field>
+    <field name={"alternate_id"}>{fields.alternateId}</field>
     <field name={"db"}>{fields.db}</field>
     <field name={"db"}>{fields.dbSource}</field>
     <field name={"instance"}>{fields.instance}</field>
@@ -132,7 +135,7 @@ class ZBMedPP {
     <field name={"type"}>{fields.pType}</field>
     <field name={"pu"}>{fields.pu}</field>
     <field name={"ti"}>{fields.ti}</field>
-    <field name={"doi"}>{fields.doi}</field>
+    <field name={"aid"}>{fields.aid}</field>
     {fields.ur.map(f => setElement("ur", f))}
     {fields.urPdf.map(f => setElement("ur", f))}
     <field name={"fulltext"}>{fields.fulltext}</field>
