@@ -22,8 +22,8 @@ class Main {
       val docsMongo: Seq[Document] = mExport.findAll
 
       new ZBMedPP().toXml(docsMongo, parameters.xmlOut) match {
-        case Success(_) => println(s"|FILE GENERATED SUCCESSFULLY IN: ${parameters.xmlOut}")
-        case Failure(e) => println(s"|FAILURE TO GENERATE FILE: $e")
+        case Success(_) => System.out.println(s"|FILE GENERATED SUCCESSFULLY IN: ${parameters.xmlOut}")
+        case Failure(exception) => System.out.println(s"|FAILURE TO GENERATE FILE: $exception")
       }
     }
   }
