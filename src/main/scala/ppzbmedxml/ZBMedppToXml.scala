@@ -6,10 +6,9 @@ import org.mongodb.scala.Document
 import java.io.BufferedWriter
 import java.nio.file.{Files, Paths}
 import java.util.Date
-import scala.collection.convert.ImplicitConversions.`collection AsScalaIterable`
+import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 import scala.xml.{Elem, PrettyPrinter, XML}
-import scala.jdk.CollectionConverters._
 
 
 private case class ZBMedpp_doc(id: String,
@@ -34,29 +33,26 @@ private case class ZBMedpp_doc(id: String,
                                //typeDocumentMedrxivBiorxiv: String,     ***Dado indisponível***
                                //categoryMedrxivBiorxiv: String)         ***Dado indisponível***
 
-//biorxiv - arxiv - researchsquare - ssrn - medrxiv - chemrxiv
+class ZBMedPP extends Enumeration {
 
-class ZBMedPP{
 
   def toXml(docsMongo: Seq[Document], pathOut: String): Try[Unit] = {
     Try{
 
-      println(s"\n|ZBMed preprints - Migration started: ${new Date()}")
-      println(s"|Total documents: ${docsMongo.length}")
+      System.out.println(s"\n|ZBMed preprints - Migration started: ${new Date()}")
+      System.out.println(s"|Total documents: ${docsMongo.length}")
 
       generateXml(docsMongo.map(f => mapElements(f) match {
         case Success(value) => value
-        case _ => throw new Exception
-      }), pathOut) match {
-        case Success(_) => ()
-        case Failure(_) => println(s"\n|Xml generation Failed!")
-      }
+        case Failure(exception) => throw new Exception(s"$exception: _id Document in Mongodb: ${f.get("_id").get.asObjectId().getValue}")
+      }), pathOut)
     }
   }
 
   private def mapElements(doc: Document): Try[ZBMedpp_doc] ={
     Try{
-      val id: String = s"ppzbmed-${doc.getString("docLink").split("[/.]").reverse.head}"
+
+      val id: String = getId(doc)
       val bd: String = "PREPRINT-ZBMED"
       val instance: String = "regional"
       val collection: String = "09-preprints"
@@ -76,17 +72,36 @@ class ZBMedPP{
     }
   }
 
+  private def getId(doc: Document): String = {
+
+    val source: String = doc.getString("source")
+
+    source match {
+      case "biorxiv" => s"ppzbmed-${doc.getString("id").split("[/.]").reverse.head}" //"Ex.'id' = 10.1101/2020.04.05.026146"
+      case "arxiv" => s"ppzbmed-${doc.getString("id").split("[.]").reverse.head.replace("v", "")}" //"Ex.'id' = 2005.11008v1"
+      case "researchsquare" => s"ppzbmed-${doc.getString("id").split("[/.]").reverse(1).split("-").reverse.head}" //"Ex.'id' = 10.21203/rs.3.rs-41695/v1" ///&&&&VALIDAR
+      case "ssrn" => s"ppzbmed-${doc.getString("id").split("[/.]").reverse.head}" //"Ex.'id' = 10.2139/ssrn.3549193"
+      case "medrxiv" => s"ppzbmed-${doc.getString("id").split("[/.]").reverse.head}" //"Ex.'id' = 10.1101/2020.05.08.20092080"
+      case "chemrxiv" => s"ppzbmed-${doc.getString("id").split("[/.]").reverse(1)}" //"Ex.'id' = 10.26434/chemrxiv.11936292.v1"
+      case "preprints.org" => s"ppzbmed-${doc.getString("id").split("[/.]").reverse(1)}" //"Ex.'id' = 10.20944/preprints202004.0204.v1"
+      case "psyarxiv" => s"ppzbmed-${doc.getString("id").split("[/.]").reverse.head}" //"Ex.'id' = 10.31234/osf.io/52bw4"
+      case "biohackrxiv" => s"ppzbmed-${doc.getString("id").split("[/.]").reverse.head}" //"Ex.'id' = 10.37044/osf.io/9d3cz"
+      case "beilstein archives" => s"ppzbmed-${doc.getString("id").split("[/.]").reverse(1)}" //"Ex.'id' = 10.3762/bxiv.2020.136.v1"
+      case "authorea preprints" => s"ppzbmed-${doc.getString("id").split("[/.]").reverse(1).split("-").reverse.head}" //"Ex.'id' = 10.22541/au.160674522.20049875/v1"
+      case _ => throw new Exception(s"ID NOT MAPPED TO $source")
+    }
+  }
+
+
   private def fieldToSeq(doc: Document, nameField: String): Seq[String]={
 
     doc.get[BsonValue](nameField).get match {
       case field if field.isString => Seq(doc.getString(nameField))
-
       case field if field.isArray =>
         nameField match {
-          case "link" => doc.get[BsonArray](nameField).get.getValues.asScala.map(tag => tag.asString().getValue).toSeq
-          case "authors" => doc.get[BsonArray](nameField).get.getValues.asScala.map(tag => tag.asString().getValue).toSeq
           case "rel_authors" =>
-            val authorsRel: Iterable[Iterable[String]] = doc.get[BsonValue](nameField).get.asArray().map(f => f.asDocument().entrySet().map(f => f.getValue.asString().getValue))
+            val authorsRel: Iterable[Iterable[String]] = doc.get[BsonValue](nameField).get.asArray().asScala.map(f =>
+              f.asDocument().entrySet().asScala.map(f => f.getValue.asString().getValue))
             val authors: Iterable[String] = for {ad <- authorsRel
                                                  a <- ad}
                                             yield a
@@ -99,7 +114,7 @@ class ZBMedPP{
   private def generateXml(elements: Seq[ZBMedpp_doc], pathOut: String): Try[Unit] = {
     Try{
       val xmlPath: BufferedWriter = Files.newBufferedWriter(Paths.get(pathOut))
-      val printer = new PrettyPrinter(80, 2)
+      val printer = new PrettyPrinter(50000, 2)
       val xmlFormat =
         <add>
           {elements.map(f => docToElem(f))}
@@ -132,7 +147,7 @@ class ZBMedPP{
   </doc>
   }
 
-  private def setElement(name: String, author: String): Elem = {
-    <field name={name}>{author}</field>
+  private def setElement(name: String, field: String): Elem = {
+    <field name={name}>{field}</field>
   }
 }
