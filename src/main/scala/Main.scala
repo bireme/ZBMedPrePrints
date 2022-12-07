@@ -12,8 +12,9 @@ case class PPZBMedXml_Parameters(xmlOut: String,
                                  host: Option[String],
                                  port: Option[Int],
                                  user: Option[String],
-                                 password: Option[String])
-
+                                 password: Option[String],
+                                 //logFile: Option[String]
+                                )
 class Main {
 
   private def exportXml(parameters: PPZBMedXml_Parameters): Try[Unit] = {
@@ -38,6 +39,7 @@ object Main {
     System.err.println("[-port=<number>]   - MongoDB server port number. Default value is 27017")
     System.err.println("[-user=<name>])    - MongoDB user name")
     System.err.println("[-password=<pwd>]  - MongoDB user password")
+    //System.err.println("[-logFile=<path>]  - if present, generate a log file with the id's of the mongodb documents that were not exported due to bugs")
     System.exit(1)
   }
 
@@ -60,6 +62,7 @@ object Main {
     val port: Option[Int] = parameters.get("port").flatMap(_.toIntOption)
     val user: Option[String] = parameters.get("user")
     val password: Option[String] = parameters.get("password")
+    //val logFile: Option[String] = parameters.get("logFile")
 
     val params: PPZBMedXml_Parameters = PPZBMedXml_Parameters(xmlOut, database, collection, host, port, user, password)
     val startDate: Date = new Date()

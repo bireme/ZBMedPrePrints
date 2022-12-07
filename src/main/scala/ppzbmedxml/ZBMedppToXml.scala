@@ -13,6 +13,7 @@ import scala.xml.{Elem, PrettyPrinter, XML}
 
 private case class ZBMedpp_doc(id: String,
                                db: String,
+                               dbSource: String,
                                instance: String,
                                collection: String,
                                pType: String,
@@ -33,8 +34,7 @@ private case class ZBMedpp_doc(id: String,
                                //typeDocumentMedrxivBiorxiv: String,     ***Dado indisponível***
                                //categoryMedrxivBiorxiv: String)         ***Dado indisponível***
 
-class ZBMedPP extends Enumeration {
-
+class ZBMedPP {
 
   def toXml(docsMongo: Seq[Document], pathOut: String): Try[Unit] = {
     Try{
@@ -42,6 +42,10 @@ class ZBMedPP extends Enumeration {
       System.out.println(s"\n|ZBMed preprints - Migration started: ${new Date()}")
       System.out.println(s"|Total documents: ${docsMongo.length}")
 
+      docsMongo.length match {
+        case docs if docs == 0 => throw new Exception("No documents found check collection and parameters")
+        case docs if docs > 0 => ()
+      }
       generateXml(docsMongo.map(f => mapElements(f) match {
         case Success(value) => value
         case Failure(exception) => throw new Exception(s"$exception: _id Document in Mongodb: ${f.get("_id").get.asObjectId().getValue}")
@@ -54,6 +58,7 @@ class ZBMedPP extends Enumeration {
 
       val id: String = getId(doc)
       val bd: String = "PREPRINT-ZBMED"
+      val bdSource: String = s"PREPRINT-${doc.getString("source").toUpperCase}"
       val instance: String = "regional"
       val collection: String = "09-preprints"
       val typeTmp: String = "preprint"
@@ -68,30 +73,20 @@ class ZBMedPP extends Enumeration {
       val entryDate: String = doc.getString("date").split("T").head.replace("-", "")
       val da: String = entryDate.substring(0, 6)
 
-      ZBMedpp_doc(id, bd, instance, collection, typeTmp, pu, ti, doi, link, linkPdf, fullText, ab, au, entryDate, da)
+      ZBMedpp_doc(id, bd, bdSource, instance, collection, typeTmp, pu, ti, doi, link, linkPdf, fullText, ab, au, entryDate, da)
     }
   }
 
   private def getId(doc: Document): String = {
 
     val source: String = doc.getString("source")
-
+    /**sources: medrxiv, biorxiv, arxiv, researchsquare, ssrn, chemrxiv, preprints.org, psyarxiv, biohackrxiv, beilstein archives, authorea preprints*/
     source match {
-      case "biorxiv" => s"ppzbmed-${doc.getString("id").split("[/.]").reverse.head}" //"Ex.'id' = 10.1101/2020.04.05.026146"
-      case "arxiv" => s"ppzbmed-${doc.getString("id").split("[.]").reverse.head.replace("v", "")}" //"Ex.'id' = 2005.11008v1"
-      case "researchsquare" => s"ppzbmed-${doc.getString("id").split("[/.]").reverse(1).split("-").reverse.head}" //"Ex.'id' = 10.21203/rs.3.rs-41695/v1" ///&&&&VALIDAR
-      case "ssrn" => s"ppzbmed-${doc.getString("id").split("[/.]").reverse.head}" //"Ex.'id' = 10.2139/ssrn.3549193"
       case "medrxiv" => s"ppzbmed-${doc.getString("id").split("[/.]").reverse.head}" //"Ex.'id' = 10.1101/2020.05.08.20092080"
-      case "chemrxiv" => s"ppzbmed-${doc.getString("id").split("[/.]").reverse(1)}" //"Ex.'id' = 10.26434/chemrxiv.11936292.v1"
-      case "preprints.org" => s"ppzbmed-${doc.getString("id").split("[/.]").reverse(1)}" //"Ex.'id' = 10.20944/preprints202004.0204.v1"
-      case "psyarxiv" => s"ppzbmed-${doc.getString("id").split("[/.]").reverse.head}" //"Ex.'id' = 10.31234/osf.io/52bw4"
-      case "biohackrxiv" => s"ppzbmed-${doc.getString("id").split("[/.]").reverse.head}" //"Ex.'id' = 10.37044/osf.io/9d3cz"
-      case "beilstein archives" => s"ppzbmed-${doc.getString("id").split("[/.]").reverse(1)}" //"Ex.'id' = 10.3762/bxiv.2020.136.v1"
-      case "authorea preprints" => s"ppzbmed-${doc.getString("id").split("[/.]").reverse(1).split("-").reverse.head}" //"Ex.'id' = 10.22541/au.160674522.20049875/v1"
-      case _ => throw new Exception(s"ID NOT MAPPED TO $source")
+      case "biorxiv" => s"ppmedrxiv-${doc.getString("id").split("[/.]").reverse.head}" //"Ex.'id' = 10.1101/2020.04.05.026146"
+      case _ => s"ppzbmed-${doc.get("_id").get.asObjectId().getValue.toString.substring(0, 7)}"
     }
   }
-
 
   private def fieldToSeq(doc: Document, nameField: String): Seq[String]={
 
@@ -114,7 +109,7 @@ class ZBMedPP extends Enumeration {
   private def generateXml(elements: Seq[ZBMedpp_doc], pathOut: String): Try[Unit] = {
     Try{
       val xmlPath: BufferedWriter = Files.newBufferedWriter(Paths.get(pathOut))
-      val printer = new PrettyPrinter(50000, 2)
+      val printer = new PrettyPrinter(50000, 0)
       val xmlFormat =
         <add>
           {elements.map(f => docToElem(f))}
@@ -131,6 +126,7 @@ class ZBMedPP extends Enumeration {
   <doc>
     <field name={"id"}>{fields.id}</field>
     <field name={"db"}>{fields.db}</field>
+    <field name={"db"}>{fields.dbSource}</field>
     <field name={"instance"}>{fields.instance}</field>
     <field name={"collection"}>{fields.collection}</field>
     <field name={"type"}>{fields.pType}</field>
@@ -147,7 +143,5 @@ class ZBMedPP extends Enumeration {
   </doc>
   }
 
-  private def setElement(name: String, field: String): Elem = {
-    <field name={name}>{field}</field>
-  }
+  private def setElement(name: String, field: String): Elem = <field name={name}>{field}</field>
 }
