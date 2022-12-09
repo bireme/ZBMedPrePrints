@@ -4,6 +4,7 @@ import org.mongodb.scala.bson.{BsonArray, BsonValue}
 import org.mongodb.scala.Document
 
 import java.io.BufferedWriter
+import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Paths}
 import java.util.Date
 import scala.jdk.CollectionConverters._
@@ -110,7 +111,7 @@ class ZBMedPP {
 
   private def generateXml(elements: Seq[ZBMedpp_doc], pathOut: String): Try[Unit] = {
     Try{
-      val xmlPath: BufferedWriter = Files.newBufferedWriter(Paths.get(pathOut))
+      val xmlPath: BufferedWriter = Files.newBufferedWriter(Paths.get(pathOut), StandardCharsets.UTF_8)
       val printer: PrettyPrinter = new PrettyPrinter(50000, 0)
       val xmlFormat: Elem =
         <add>
