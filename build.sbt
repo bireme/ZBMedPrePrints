@@ -15,6 +15,6 @@ val logback = "1.4.5"
 libraryDependencies ++= Seq(
   "org.mongodb.scala" %% "mongo-scala-driver" % mongoVersion,
   "org.scala-lang.modules" %% "scala-xml" % xmlVersion,
-  "com.typesafe.scala-logging" %% "scala-logging" % logging,
-  "ch.qos.logback" % "logback-classic" % logback
+//  "com.typesafe.scala-logging" %% "scala-logging" % logging,
+//  "ch.qos.logback" % "logback-classic" % logback
 )

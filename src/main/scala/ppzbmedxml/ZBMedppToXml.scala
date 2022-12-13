@@ -3,9 +3,9 @@ package ppzbmedxml
 import org.mongodb.scala.bson.{BsonArray, BsonValue}
 import org.mongodb.scala.Document
 
-import java.io.BufferedWriter
-import java.nio.charset.StandardCharsets
-import java.nio.file.{Files, Paths}
+import java.io.{BufferedWriter, File}
+import java.nio.charset.Charset
+import java.nio.file.Files
 import java.util.Date
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
@@ -111,14 +111,18 @@ class ZBMedPP {
 
   private def generateXml(elements: Seq[ZBMedpp_doc], pathOut: String): Try[Unit] = {
     Try{
-      val xmlPath: BufferedWriter = Files.newBufferedWriter(Paths.get(pathOut), StandardCharsets.UTF_8)
+      val xmlPath: BufferedWriter = Files.newBufferedWriter(new File(pathOut).toPath, Charset.forName("utf-8"))
       val printer: PrettyPrinter = new PrettyPrinter(50000, 0)
+
       val xmlFormat: Elem =
         <add>
           {elements.map(f => docToElem(f))}
         </add>
 
-      XML.write(xmlPath, XML.loadString(printer.format(xmlFormat)), "UTF-8", xmlDecl = true, null)
+//      xmlPath.write(s"<?xml version=\"${1.0}\" encoding=\"${"utf-8"}\"?>\n")
+//      xmlPath.write(XML.loadString(printer.format(xmlFormat)).toString())
+
+      XML.write(xmlPath, XML.loadString(printer.format(xmlFormat)), "utf-8", xmlDecl = true, null)
       xmlPath.flush()
       xmlPath.close()
     }
