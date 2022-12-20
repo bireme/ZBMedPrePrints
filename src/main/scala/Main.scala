@@ -27,8 +27,8 @@ class Main {
       val docsMongo = mExport.findAll
 
       new ZBMedPP().toXml(docsMongo, parameters.xmlOut) match {
-        case Success(_) => logger.info(s"|FILE GENERATED SUCCESSFULLY IN: ${parameters.xmlOut}")
-        case Failure(exception) => logger.error(s"|FAILURE TO GENERATE FILE:", exception)
+        case Success(_) => logger.info(s"FILE GENERATED SUCCESSFULLY IN: ${parameters.xmlOut}")
+        case Failure(_) => logger.warn("FAILURE TO GENERATE FILE")
       }
     }
   }
@@ -47,7 +47,6 @@ object Main {
     System.err.println("[-port=<number>]   - MongoDB server port number. Default value is 27017")
     System.err.println("[-user=<name>])    - MongoDB user name")
     System.err.println("[-password=<pwd>]  - MongoDB user password")
-    System.err.println("[-logFile=<path>]     - if present, indicate the name of a log file with the names XML files that were not imported because of bugs")
     System.exit(1)
   }
 
@@ -80,7 +79,7 @@ object Main {
         logger.info(timeAtProcessing(startDate))
         System.exit(0)
       case Failure(exception) =>
-        logger.warn(s"|Error: ${exception.toString}\n")
+        logger.error("Error: ", exception.toString)
         System.exit(1)
     }
   }
@@ -90,6 +89,6 @@ object Main {
     val elapsedTime: Long = (endDate.getTime - startDate.getTime) / 1000
     val minutes: Long = elapsedTime / 60
     val seconds: Long = elapsedTime % 60
-    s"|Processing time: ${minutes}min e ${seconds}s\n"
+    s"Processing time: ${minutes}min e ${seconds}s\n"
   }
 }

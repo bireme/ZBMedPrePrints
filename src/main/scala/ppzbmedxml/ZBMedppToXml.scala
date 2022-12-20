@@ -43,15 +43,17 @@ class ZBMedPP {
   def toXml(docsMongo: Seq[Document] , pathOut: String): Try[Unit] = {
     Try{
       System.out.println("\n")
-      logger.info(s"|ZBMed preprints - Migration started: ${new Date()}")
-      logger.info(s"|Total documents: ${docsMongo.length}")
+      logger.info(s"Migration started - ZBMed preprints ${new Date()}")
+      logger.info(s"Total documents: ${docsMongo.length}")
 
       docsMongo.length match {
-        case docs if docs == 0 => throw new Exception("No documents found check collection and parameters")
-        case docs if docs > 0 => generateXml(docsMongo.map(f => mapElements(f) match {
-          case Success(value) => value
+        case docs if docs == 0 => throw new Exception(s"${logger.warn("No documents found check collection and parameters")}")
+        case docs if docs > 0 => logger.info("Connected to mongodb")
+          generateXml(docsMongo.map(f => mapElements(f) match {
+          case Success(value) => logger.debug(s"Exported document to XML file ${f.get("_id").get.toString}")
+            value
           case Failure(exception) =>
-            throw new Exception(logger.warn(s"$exception: _id Document in Mongodb: ${f.get("_id").get.toString}").toString)
+            throw new Exception(logger.error(s"_id Document in Mongodb: ${f.get("_id").get.toString} Exception: ", exception).toString)
         }), pathOut)
       }
     }
