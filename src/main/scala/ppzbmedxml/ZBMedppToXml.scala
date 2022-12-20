@@ -1,7 +1,8 @@
 package ppzbmedxml
 
-import org.mongodb.scala.bson.{BsonArray, BsonValue}
 import org.mongodb.scala.Document
+import org.mongodb.scala.bson.{BsonArray, BsonValue}
+import org.slf4j.{Logger, LoggerFactory}
 
 import java.io.{BufferedWriter, File}
 import java.nio.charset.Charset
@@ -10,7 +11,6 @@ import java.util.Date
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 import scala.xml.{Elem, PrettyPrinter, XML}
-
 
 private case class ZBMedpp_doc(id: String,
                                alternateId: String,
@@ -38,20 +38,22 @@ private case class ZBMedpp_doc(id: String,
 
 class ZBMedPP {
 
-  def toXml(docsMongo: Seq[Document], pathOut: String): Try[Unit] = {
-    Try{
+  val logger: Logger = LoggerFactory.getLogger(classOf[ZBMedPP])
 
-      System.out.println(s"\n|ZBMed preprints - Migration started: ${new Date()}")
-      System.out.println(s"|Total documents: ${docsMongo.length}")
+  def toXml(docsMongo: Seq[Document] , pathOut: String): Try[Unit] = {
+    Try{
+      System.out.println("\n")
+      logger.info(s"|ZBMed preprints - Migration started: ${new Date()}")
+      logger.info(s"|Total documents: ${docsMongo.length}")
 
       docsMongo.length match {
         case docs if docs == 0 => throw new Exception("No documents found check collection and parameters")
-        case docs if docs > 0 => ()
+        case docs if docs > 0 => generateXml(docsMongo.map(f => mapElements(f) match {
+          case Success(value) => value
+          case Failure(exception) =>
+            throw new Exception(logger.warn(s"$exception: _id Document in Mongodb: ${f.get("_id").get.toString}").toString)
+        }), pathOut)
       }
-      generateXml(docsMongo.map(f => mapElements(f) match {
-        case Success(value) => value
-        case Failure(exception) => throw new Exception(s"$exception: _id Document in Mongodb: ${f.get("_id").get.asObjectId().getValue}")
-      }), pathOut)
     }
   }
 
@@ -81,13 +83,12 @@ class ZBMedPP {
   }
 
   private def getIdAlternate(doc: Document): String = {
-
     val source: String = doc.getString("source")
     /**sources: medrxiv, biorxiv, arxiv, researchsquare, ssrn, chemrxiv, preprints.org, psyarxiv, biohackrxiv, beilstein archives, authorea preprints*/
     source match {
       case "medrxiv" => s"ppmedrxiv-${doc.getString("id").split("[/.]").reverse.head}" //"Ex.'id' = 10.1101/2020.05.08.20092080"
       case "biorxiv" => s"ppbiorxiv-${doc.getString("id").split("[/.]").reverse.head}" //"Ex.'id' = 10.1101/2020.04.05.026146"
-      case _ => s"ppzbmed-${doc.get("_id").get.asObjectId().getValue}"
+      case _ => s"ppzbmed-${doc.get("_id")}"
     }
   }
 

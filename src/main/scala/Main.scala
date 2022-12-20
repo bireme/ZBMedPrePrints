@@ -1,8 +1,10 @@
+import ch.qos.logback.classic.ClassicConstants
 import mongodb.MongoExport
-import org.mongodb.scala.Document
+import org.slf4j.{Logger, LoggerFactory}
 import ppzbmedxml.ZBMedPP
 
 import java.util.Date
+import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
 
@@ -12,36 +14,45 @@ case class PPZBMedXml_Parameters(xmlOut: String,
                                  host: Option[String],
                                  port: Option[Int],
                                  user: Option[String],
-                                 password: Option[String],
-                                )
+                                 password: Option[String])
+
+
 class Main {
+
+  val logger: Logger = LoggerFactory.getLogger(classOf[Main])
 
   private def exportXml(parameters: PPZBMedXml_Parameters): Try[Unit] = {
     Try {
       val mExport: MongoExport = new MongoExport(parameters.database, parameters.collection, parameters.host, parameters.port)
-      val docsMongo: Seq[Document] = mExport.findAll
+      val docsMongo = mExport.findAll
 
       new ZBMedPP().toXml(docsMongo, parameters.xmlOut) match {
-        case Success(_) => System.out.println(s"|FILE GENERATED SUCCESSFULLY IN: ${parameters.xmlOut}")
-        case Failure(exception) => System.out.println(s"|FAILURE TO GENERATE FILE: $exception")
+        case Success(_) => logger.info(s"|FILE GENERATED SUCCESSFULLY IN: ${parameters.xmlOut}")
+        case Failure(exception) => logger.error(s"|FAILURE TO GENERATE FILE:", exception)
       }
     }
   }
 }
 
 object Main {
+
+  System.setProperty(ClassicConstants.CONFIG_FILE_PROPERTY, "./src/main/scala/resources/logback.xml")
+  val logger: Logger = LoggerFactory.getLogger(classOf[Main])
+
   private def usage(): Unit = {
+    System.err.println("-xmlout=<path>     - XML file output directory")
     System.err.println("-database=<name>   - MongoDB database name")
     System.err.println("-collection=<name> - MongoDB database collection name")
-    System.err.println("-xmlout=<path>     - XML file output directory")
     System.err.println("[-host=<name>]     - MongoDB server name. Default value is 'localhost'")
     System.err.println("[-port=<number>]   - MongoDB server port number. Default value is 27017")
     System.err.println("[-user=<name>])    - MongoDB user name")
     System.err.println("[-password=<pwd>]  - MongoDB user password")
+    System.err.println("[-logFile=<path>]     - if present, indicate the name of a log file with the names XML files that were not imported because of bugs")
     System.exit(1)
   }
 
   def main(args: Array[String]): Unit = {
+
     if (args.length < 3) usage()
 
     val parameters: Map[String, String] = args.foldLeft[Map[String, String]](Map()) {
@@ -66,16 +77,19 @@ object Main {
 
     (new Main).exportXml(params) match {
       case Success(_) =>
-        val endDate: Date = new Date()
-        val elapsedTime: Long = endDate.getTime - startDate.getTime
-        val seconds0: Long = elapsedTime / 1000
-        val minutes: Long = seconds0 / 60
-        val seconds: Long = seconds0 % 60
-        println(s"|Processing time: ${minutes}min e ${seconds}s\n")
+        logger.info(timeAtProcessing(startDate))
         System.exit(0)
       case Failure(exception) =>
-        println(s"|Error: ${exception.toString}\n")
+        logger.warn(s"|Error: ${exception.toString}\n")
         System.exit(1)
     }
+  }
+
+  def timeAtProcessing(startDate: Date): String = {
+    val endDate: Date = new Date()
+    val elapsedTime: Long = (endDate.getTime - startDate.getTime) / 1000
+    val minutes: Long = elapsedTime / 60
+    val seconds: Long = elapsedTime % 60
+    s"|Processing time: ${minutes}min e ${seconds}s\n"
   }
 }
