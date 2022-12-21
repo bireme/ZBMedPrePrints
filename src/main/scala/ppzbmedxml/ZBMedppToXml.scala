@@ -48,7 +48,7 @@ class ZBMedPP {
 
       docsMongo.length match {
         case docs if docs == 0 => throw new Exception(s"${logger.warn("No documents found check collection and parameters")}")
-        case docs if docs > 0 => logger.info("Connected to mongodb")
+        case docs if docs > 0 => logger.info("Connected to mongodb - Processing documents...")
           generateXml(docsMongo.map(f => mapElements(f) match {
           case Success(value) => logger.debug(s"Exported document to XML file ${f.get("_id").get.toString}")
             value
