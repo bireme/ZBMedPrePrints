@@ -1,6 +1,6 @@
 # zbmed-mongodb project
 
-* The project gets documents from mongodb and converts to xml utf-8, specific to zbmed-preprints.
+The project gets documents from mongodb and converts to xml utf-8, specific to zbmed-preprints.
 
 ## versions
 * Scala 2.13.10
