@@ -23,11 +23,20 @@ class Main {
 
   private def exportXml(parameters: PPZBMedXml_Parameters): Try[Unit] = {
     Try {
+      System.out.println("\n")
+      logger.info(s"Migration started - ZBMed preprints ${new Date()}")
+
       val mExport: MongoExport = new MongoExport(parameters.database, parameters.collection, parameters.host, parameters.port)
       val docsMongo = mExport.findAll
 
+      docsMongo.length match {
+        case docs if docs == 0 => throw new Exception(s"${logger.warn("No documents found check collection and parameters")}")
+        case docs if docs > 0 => logger.info(s"Connected to mongodb - database: ${parameters.database}, collection: ${parameters.collection}," +
+          s" host: ${parameters.host.getOrElse("localhost")}, port: ${parameters.port.get}, user: ${parameters.user.getOrElse("None")}")
+          logger.info(s"Total documents: ${docsMongo.length}")
+      }
       new ZBMedPP().toXml(docsMongo, parameters.xmlOut) match {
-        case Success(_) => logger.info(s"FILE GENERATED SUCCESSFULLY IN: ${parameters.xmlOut}")
+        case Success(_) => s"\n${logger.info(s"FILE GENERATED SUCCESSFULLY IN: ${parameters.xmlOut}")}"
         case Failure(_) => logger.warn("FAILURE TO GENERATE FILE")
       }
     }
