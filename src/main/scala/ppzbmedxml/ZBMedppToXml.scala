@@ -7,7 +7,6 @@ import org.slf4j.{Logger, LoggerFactory}
 import java.io.{BufferedWriter, File}
 import java.nio.charset.Charset
 import java.nio.file.Files
-import java.util.Date
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 import scala.xml.{Elem, PrettyPrinter, XML}
@@ -42,26 +41,20 @@ class ZBMedPP {
 
   def toXml(docsMongo: Seq[Document] , pathOut: String): Try[Unit] = {
     Try{
-      System.out.println("\n")
-      logger.info(s"Migration started - ZBMed preprints ${new Date()}")
-      logger.info(s"Total documents: ${docsMongo.length}")
-
-      docsMongo.length match {
-        case docs if docs == 0 => throw new Exception(s"${logger.warn("No documents found check collection and parameters")}")
-        case docs if docs > 0 => logger.info("Connected to mongodb - Processing documents...")
-          generateXml(docsMongo.map(f => mapElements(f) match {
-          case Success(value) => logger.debug(s"Exported document to XML file ${f.get("_id").get.toString}")
-            value
-          case Failure(exception) =>
-            throw new Exception(logger.error(s"_id Document in Mongodb: ${f.get("_id").get.toString} Exception: ", exception).toString)
-        }), pathOut)
-      }
+      var i = 1
+      generateXml(docsMongo.map(f => mapElements(f) match {
+        case Success(value) => System.out.print(s"\rProcessing: $i")
+          i += 1
+          value
+        case Failure(exception) =>
+          throw new Exception(logger.error(s"_id Document in Mongodb: ${f.get("_id").get.toString} Exception: ", exception).toString)
+      }), pathOut)
+      System.out.print("\r")
     }
   }
 
   private def mapElements(doc: Document): Try[ZBMedpp_doc] ={
     Try{
-
       val id: String = s"ppzbmed-${doc.get("_id").get.asObjectId().getValue}"
       val alternateId: String = getIdAlternate(doc)
       val bd: String = "PREPRINT-ZBMED"
