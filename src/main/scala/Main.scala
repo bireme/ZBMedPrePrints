@@ -1,10 +1,12 @@
+package main
+
 import ch.qos.logback.classic.ClassicConstants
 import mongodb.MongoExport
 import org.slf4j.{Logger, LoggerFactory}
 import ppzbmedxml.ZBMedPP
+import main.Main.logger
 
 import java.util.Date
-import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
 
@@ -18,8 +20,6 @@ case class PPZBMedXml_Parameters(xmlOut: String,
 
 
 class Main {
-
-  val logger: Logger = LoggerFactory.getLogger(classOf[Main])
 
   private def exportXml(parameters: PPZBMedXml_Parameters): Try[Unit] = {
     Try {
@@ -47,6 +47,8 @@ object Main {
 
   System.setProperty(ClassicConstants.CONFIG_FILE_PROPERTY, "./src/main/scala/resources/logback.xml")
   val logger: Logger = LoggerFactory.getLogger(classOf[Main])
+
+
 
   private def usage(): Unit = {
     System.err.println("-xmlout=<path>     - XML file output directory")
@@ -88,7 +90,7 @@ object Main {
         logger.info(timeAtProcessing(startDate))
         System.exit(0)
       case Failure(exception) =>
-        logger.error("Error: ", exception.toString)
+        logger.error(if (exception.getMessage == "()") "Interrupted Processing!" else "Error: ", exception.toString)
         System.exit(1)
     }
   }
