@@ -18,7 +18,7 @@ class ZBMedTests extends AnyFunSuite with BeforeAndAfter {
 
   val xDocuments: Seq[Document] = mongoTests.mongo.findAll.take(qtdDocuments)
 
-  test(s"Tests the toXML method for $qtdDocuments documents to (/home/bases/logs/ppzbmed/ppzbmed_unit.xml) - toXml") {
-    assert(zbmedpp.toXml(xDocuments, "/home/bases/logs/ppzbmed/ppzbmed_unit.xml").isSuccess)
+  test(s"Tests the toXML method for $qtdDocuments documents to ***PATH***/ppzbmed_unit.xml) - toXml") {
+    assert(zbmedpp.toXml(xDocuments, "/***PATH***/ppzbmed_unit.xml").isSuccess)
   }
 }
