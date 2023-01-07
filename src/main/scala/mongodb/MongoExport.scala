@@ -1,4 +1,4 @@
-package mongodb_teste
+package mongodb
 
 import org.mongodb.scala._
 
@@ -27,6 +27,8 @@ class MongoExport(database: String,
   private val mongoClient: MongoClient = MongoClient(mongoUri)
   private val dbase: MongoDatabase = mongoClient.getDatabase(database)
   private val coll: MongoCollection[Document] = dbase.getCollection(collection)
+
+  def getInitSeccion: Boolean = mongoClient.startSession().results().nonEmpty
 
   def findAll: Seq[Document] = new DocumentObservable(coll.find()).observable.results()
 

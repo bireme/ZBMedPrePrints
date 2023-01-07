@@ -1,18 +1,21 @@
-package mongodbl
+package mongodb_unit
 
+import ch.qos.logback.classic.ClassicConstants
 import mongodb.MongoExport
 import org.scalatest.BeforeAndAfter
 import org.scalatest.funsuite.AnyFunSuite
 
 class MongoTests extends AnyFunSuite with BeforeAndAfter{
 
-  var mongo: MongoExport = new MongoExport("ZBMed", "preprints", Option("localhost"), Option(27019))
+  System.setProperty(ClassicConstants.CONFIG_FILE_PROPERTY, "./src/main/scala/resources/logback.xml")
 
-  before{
-    mongo
+  val mongo: MongoExport = new MongoExport("ZBMed", "preprints", Option("localhost"), Option(27019))
+
+  test("Validate session start with mongodb - getInitSeccion") {
+    assert(mongo.getInitSeccion)
   }
 
-  test("new pizza has zero toppings") {
+  test(s"Check document collection - findAll [Total documents: ${mongo.findAll.length}]") {
     assert(mongo.findAll.nonEmpty)
   }
 }
