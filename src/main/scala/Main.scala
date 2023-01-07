@@ -1,10 +1,8 @@
-package main
-
 import ch.qos.logback.classic.ClassicConstants
-import mongodb.MongoExport
+import Main.logger
 import org.slf4j.{Logger, LoggerFactory}
 import ppzbmedxml.ZBMedPP
-import main.Main.logger
+import mongodb.MongoExport
 
 import java.util.Date
 import scala.util.{Failure, Success, Try}
@@ -47,7 +45,6 @@ object Main {
 
   System.setProperty(ClassicConstants.CONFIG_FILE_PROPERTY, "./src/main/scala/resources/logback.xml")
   val logger: Logger = LoggerFactory.getLogger(classOf[Main])
-
 
 
   private def usage(): Unit = {

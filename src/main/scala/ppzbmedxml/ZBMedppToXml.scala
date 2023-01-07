@@ -13,12 +13,12 @@ import scala.xml.{Elem, PrettyPrinter, XML}
 
 private case class ZBMedpp_doc(id: String,
                                alternateId: String,
-                               db: String,
                                dbSource: String,
                                instance: String,
                                collection: String,
                                pType: String,
-                               //la: String,                             ***Dado indisponível***
+                               la: String,
+                               fo: String,
                                pu: String,
                                ti: String,
                                aid: String,
@@ -57,13 +57,14 @@ class ZBMedPP {
     Try{
       val id: String = s"ppzbmed-${doc.get("_id").get.asObjectId().getValue}"
       val alternateId: String = getIdAlternate(doc)
-      val bd: String = "PREPRINT-ZBMED"
       val bdSource: String = s"PREPRINT-${doc.getString("source").toUpperCase}"
       val instance: String = "regional"
       val collection: String = "09-preprints"
       val typeTmp: String = "preprint"
+      val la: String = "en"
+      val fo: String = "EuropePMC; 2022."
       val pu: String = doc.getString("source")
-      val ti: String = doc.getString("title").replace("<", "&lt;").replace(">", "&gt;")
+      val ti: String = doc.getString("title").concat(" (preprint)").replace("<", "&lt;").replace(">", "&gt;")
       val aid: String = doc.getString("id")
       val link: Seq[String] = fieldToSeq(doc, "link").filter(_ != doc.getString("pdfLink"))
       val linkPdf: Seq[String] = fieldToSeq(doc, "pdfLink")
@@ -73,7 +74,7 @@ class ZBMedPP {
       val entryDate: String = doc.getString("date").split("T").head.replace("-", "")
       val da: String = entryDate.substring(0, 6)
 
-      ZBMedpp_doc(id, alternateId, bd, bdSource, instance, collection, typeTmp, pu, ti, aid, link, linkPdf, fullText, ab, au, entryDate, da)
+      ZBMedpp_doc(id, alternateId, bdSource, instance, collection, typeTmp, la, fo, pu, ti, aid, link, linkPdf, fullText, ab, au, entryDate, da)
     }
   }
 
@@ -90,7 +91,6 @@ class ZBMedPP {
   private def fieldToSeq(doc: Document, nameField: String): Seq[String]={
 
     doc.get[BsonValue](nameField).get match {
-      case field if field.isString => Seq(doc.getString(nameField))
       case field if field.isArray =>
         nameField match {
           case "rel_authors" =>
@@ -102,6 +102,7 @@ class ZBMedPP {
             authors.toSeq.filter(f => f.nonEmpty)
           case _ => doc.get[BsonArray](nameField).get.getValues.asScala.map(tag => tag.asString().getValue).toSeq
         }
+      case _ => Seq(doc.getString(nameField))
     }
   }
 
@@ -115,9 +116,6 @@ class ZBMedPP {
           {elements.map(f => docToElem(f))}
         </add>
 
-//      xmlPath.write(s"<?xml version=\"${1.0}\" encoding=\"${"utf-8"}\"?>\n")
-//      xmlPath.write(XML.loadString(printer.format(xmlFormat)).toString())
-
       XML.write(xmlPath, XML.loadString(printer.format(xmlFormat)), "utf-8", xmlDecl = true, null)
       xmlPath.flush()
       xmlPath.close()
@@ -129,11 +127,12 @@ class ZBMedPP {
   <doc>
     <field name={"id"}>{fields.id}</field>
     <field name={"alternate_id"}>{fields.alternateId}</field>
-    <field name={"db"}>{fields.db}</field>
     <field name={"db"}>{fields.dbSource}</field>
     <field name={"instance"}>{fields.instance}</field>
     <field name={"collection"}>{fields.collection}</field>
     <field name={"type"}>{fields.pType}</field>
+    <field name={"la"}>{fields.la}</field>
+    <field name={"fo"}>{fields.fo}</field>
     <field name={"pu"}>{fields.pu}</field>
     <field name={"ti"}>{fields.ti}</field>
     <field name={"aid"}>{fields.aid}</field>

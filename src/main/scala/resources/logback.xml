@@ -5,7 +5,7 @@
         </encoder>
     </appender>
 
-    <variable file="log.properties"/>
+    <variable file="src/main/scala/resources/log.properties"/>
 
     <appender name="FILE" class="ch.qos.logback.core.FileAppender">
         <!-- path to your log file, where you want to store logs -->
