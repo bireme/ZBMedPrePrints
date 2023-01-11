@@ -44,8 +44,8 @@ class ZBMedPP {
       logger.info("+++Processing started")
       var i = 1
       generateXml(docsMongo.map(f => mapElements(f) match {
-        case Success(value) => i += 1
-          percentageProcessed(docsMongo.length, i, 20)
+        case Success(value) => amountProcessed(docsMongo.length, i, 10000)
+          i += 1
           value
         case Failure(exception) =>
           throw new Exception(logger.error(s"_id Document in Mongodb: ${f.get("_id").get.asObjectId().getValue} Exception: ", exception).toString)
@@ -84,7 +84,7 @@ class ZBMedPP {
     val id = if (doc.getString("id") == null) "" else doc.getString("id")
     id match {
       case id if id.nonEmpty => id
-      case id if id.isEmpty => logger.warn(s"Found document without id: _id mongodb ${doc.get("_id").get.asObjectId().getValue}")
+      case id if id.isEmpty => logger.warn(s"Not Found id: _id mongodb ${doc.get("_id").get.asObjectId().getValue}")
         s"${logger.info("Processing documents...")}"
     }
   }
@@ -142,7 +142,7 @@ class ZBMedPP {
   private def docToElem(fields: ZBMedpp_doc): Elem ={
 
   <doc>
-    <field name={"id"}>{fields.id}</field>
+    {if (fields.id.nonEmpty) setElement("id", fields.id) else xml.NodeSeq.Empty}
     {if (fields.alternateId.nonEmpty) setElement("alternate_id", fields.alternateId) else xml.NodeSeq.Empty}
     {if (fields.dbSource.nonEmpty) setElement("db", fields.dbSource) else xml.NodeSeq.Empty}
     {if (fields.instance.nonEmpty) setElement("instance", fields.instance) else xml.NodeSeq.Empty}
@@ -165,11 +165,19 @@ class ZBMedPP {
 
   private def setElement(name: String, field: String): Elem = <field name={name}>{field}</field>
 
-  def percentageProcessed(total: Int, qtdProccess: Int, perCent: Int): Unit = {
-    val valuePerCent = perCent * total / 100
-    if (qtdProccess % valuePerCent == 0) {
-      val value = (qtdProccess.toDouble / total) * 100
-      logger.info(s"+++${Math.round(value)}%")
+  def amountProcessed(total: Int, qtdProccess: Int, setAmount: Int): Unit = {
+    val valuePrints: Double = total / setAmount
+    if (total / qtdProccess <= valuePrints) {
+      if (qtdProccess % setAmount == 0 || qtdProccess == total)
+      logger.info(s"+++$qtdProccess")
     }
   }
+
+//  def percentageProcessed(total: Int, qtdProccess: Int, perCent: Int): Unit = {
+//    val valuePerCent = perCent * total / 100
+//    if (qtdProccess % valuePerCent == 0) {
+//      val value = (qtdProccess.toDouble / total) * 100
+//      logger.info(s"+++${Math.round(value)}%")
+//    }
+//  }
 }
