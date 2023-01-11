@@ -41,22 +41,24 @@ class ZBMedPP {
 
   def toXml(docsMongo: Seq[Document] , pathOut: String): Try[Unit] = {
     Try{
+      logger.info("+++Processing started")
       var i = 1
       generateXml(docsMongo.map(f => mapElements(f) match {
-        case Success(value) => System.out.print(s"\rProcessing: $i")
-          i += 1
+        case Success(value) => i += 1
+          percentageProcessed(docsMongo.length, i, 20)
           value
         case Failure(exception) =>
-          throw new Exception(logger.error(s"_id Document in Mongodb: ${f.get("_id").get.toString} Exception: ", exception).toString)
+          throw new Exception(logger.error(s"_id Document in Mongodb: ${f.get("_id").get.asObjectId().getValue} Exception: ", exception).toString)
       }), pathOut)
-      System.out.print("\r")
     }
   }
 
+
   private def mapElements(doc: Document): Try[ZBMedpp_doc] ={
     Try{
-      val id: String = s"ppzbmed-${doc.get("_id").get.asObjectId().getValue}"
-      val alternateId: String = getIdAlternate(doc)
+      val idValidated: String = getId(doc)
+      val id: String = s"ppzbmed-$idValidated"
+      val alternateId: String = getIdAlternate(doc.getString("source"), id)
       val bdSource: String = s"PREPRINT-${doc.getString("source").toUpperCase}"
       val instance: String = "regional"
       val collection: String = "09-preprints"
@@ -65,7 +67,7 @@ class ZBMedPP {
       val fo: String = "EuropePMC; 2022."
       val pu: String = doc.getString("source")
       val ti: String = doc.getString("title").concat(" (preprint)").replace("<", "&lt;").replace(">", "&gt;")
-      val aid: String = doc.getString("id")
+      val aid: String = idValidated
       val link: Seq[String] = fieldToSeq(doc, "link").filter(_ != doc.getString("pdfLink"))
       val linkPdf: Seq[String] = fieldToSeq(doc, "pdfLink")
       val fullText: String = if (link.nonEmpty | linkPdf.nonEmpty) "1" else ""
@@ -78,13 +80,28 @@ class ZBMedPP {
     }
   }
 
-  private def getIdAlternate(doc: Document): String = {
-    val source: String = doc.getString("source")
+  def getId(doc: Document): String ={
+    val id = if (doc.getString("id") == null) "" else doc.getString("id")
+    id match {
+      case id if id.nonEmpty => id
+      case id if id.isEmpty => logger.warn(s"Found document without id: _id mongodb ${doc.get("_id").get.asObjectId().getValue}")
+        s"${logger.info("Processing documents...")}"
+    }
+  }
+
+  private def getIdAlternate(source: String, id: String): String = {
+
     /**sources: medrxiv, biorxiv, arxiv, researchsquare, ssrn, chemrxiv, preprints.org, psyarxiv, biohackrxiv, beilstein archives, authorea preprints*/
     source match {
-      case "medrxiv" => s"ppmedrxiv-${doc.getString("id").split("[/.]").reverse.head}" //"Ex.'id' = 10.1101/2020.05.08.20092080"
-      case "biorxiv" => s"ppbiorxiv-${doc.getString("id").split("[/.]").reverse.head}" //"Ex.'id' = 10.1101/2020.04.05.026146"
-      case _ => s"ppzbmed-${doc.get("_id")}"
+      case "medrxiv" => id.nonEmpty match {
+        case true => s"ppmedrxiv-${id.split("[/.]").reverse.head}"
+        case false => ""
+      }
+      case "biorxiv" => id.nonEmpty match {
+        case true => s"ppbiorxiv-${id.split("[/.]").reverse.head}"
+        case false => ""
+      }
+      case _ => ""
     }
   }
 
@@ -126,25 +143,33 @@ class ZBMedPP {
 
   <doc>
     <field name={"id"}>{fields.id}</field>
-    <field name={"alternate_id"}>{fields.alternateId}</field>
-    <field name={"db"}>{fields.dbSource}</field>
-    <field name={"instance"}>{fields.instance}</field>
-    <field name={"collection"}>{fields.collection}</field>
-    <field name={"type"}>{fields.pType}</field>
-    <field name={"la"}>{fields.la}</field>
-    <field name={"fo"}>{fields.fo}</field>
-    <field name={"pu"}>{fields.pu}</field>
-    <field name={"ti"}>{fields.ti}</field>
-    <field name={"aid"}>{fields.aid}</field>
-    {fields.ur.map(f => setElement("ur", f))}
-    {fields.urPdf.map(f => setElement("ur", f))}
-    <field name={"fulltext"}>{fields.fulltext}</field>
-    <field name={"ab"}>{fields.ab}</field>
-    {fields.au.map(f => setElement("au", f))}
-    <field name={"entry_date"}>{fields.entryDate}</field>
-    <field name={"da"}>{fields.da}</field>
+    {if (fields.alternateId.nonEmpty) setElement("alternate_id", fields.alternateId) else xml.NodeSeq.Empty}
+    {if (fields.dbSource.nonEmpty) setElement("db", fields.dbSource) else xml.NodeSeq.Empty}
+    {if (fields.instance.nonEmpty) setElement("instance", fields.instance) else xml.NodeSeq.Empty}
+    {if (fields.collection.nonEmpty) setElement("collection", fields.collection) else xml.NodeSeq.Empty}
+    {if (fields.pType.nonEmpty) setElement("type", fields.pType) else xml.NodeSeq.Empty}
+    {if (fields.la.nonEmpty) setElement("la", fields.la) else xml.NodeSeq.Empty}
+    {if (fields.fo.nonEmpty) setElement("fo", fields.fo) else xml.NodeSeq.Empty}
+    {if (fields.pu.nonEmpty) setElement("pu", fields.pu) else xml.NodeSeq.Empty}
+    {if (fields.ti.nonEmpty) setElement("ti", fields.ti) else xml.NodeSeq.Empty}
+    {if (fields.aid.nonEmpty) setElement("aid", fields.aid) else xml.NodeSeq.Empty}
+    {if (fields.ur.nonEmpty) {fields.ur.map(f => setElement("ur", f))} else xml.NodeSeq.Empty}
+    {if (fields.urPdf.nonEmpty) {fields.urPdf.map(f => setElement("ur", f))} else xml.NodeSeq.Empty}
+    {if (fields.fulltext.nonEmpty) setElement("fulltext", fields.fulltext) else xml.NodeSeq.Empty}
+    {if (fields.ab.nonEmpty) setElement("ab", fields.ab) else xml.NodeSeq.Empty}
+    {if (fields.au.nonEmpty) {fields.au.map(f => setElement("au", f))} else xml.NodeSeq.Empty}
+    {if (fields.entryDate.nonEmpty) setElement("entry_date", fields.entryDate) else xml.NodeSeq.Empty}
+    {if (fields.da.nonEmpty) setElement("da", fields.da) else xml.NodeSeq.Empty}
   </doc>
   }
 
   private def setElement(name: String, field: String): Elem = <field name={name}>{field}</field>
+
+  def percentageProcessed(total: Int, qtdProccess: Int, perCent: Int): Unit = {
+    val valuePerCent = perCent * total / 100
+    if (qtdProccess % valuePerCent == 0) {
+      val value = (qtdProccess.toDouble / total) * 100
+      logger.info(s"+++${Math.round(value)}%")
+    }
+  }
 }
