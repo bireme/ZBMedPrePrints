@@ -19,6 +19,7 @@ private case class ZBMedpp_doc(id: String,
                                pType: String,
                                la: String,
                                fo: String,
+                               dp: String,
                                pu: String,
                                ti: String,
                                aid: String,
@@ -64,8 +65,11 @@ class ZBMedPP {
       val collection: String = "09-preprints"
       val typeTmp: String = "preprint"
       val la: String = "en"
-      val fo: String = "EuropePMC; 2022."
       val pu: String = doc.getString("source")
+      val entryDate: String = doc.getString("date").split("T").head.replace("-", "")
+      val da: String = entryDate.substring(0, 6)
+      val dp: String = entryDate.substring(0, 4)
+      val fo: String = s"$pu; $dp."
       val ti: String = doc.getString("title").concat(" (preprint)").replace("<", "&lt;").replace(">", "&gt;")
       val aid: String = idValidated
       val link: Seq[String] = fieldToSeq(doc, "link").filter(_ != doc.getString("pdfLink"))
@@ -73,10 +77,8 @@ class ZBMedPP {
       val fullText: String = if (link.nonEmpty | linkPdf.nonEmpty) "1" else ""
       val ab: String = doc.getString("abstract").replace("<", "&lt;").replace(">", "&gt;")
       val au: Seq[String] = if (doc.get[BsonValue]("authors").isDefined) fieldToSeq(doc, "authors") else fieldToSeq(doc, "rel_authors")
-      val entryDate: String = doc.getString("date").split("T").head.replace("-", "")
-      val da: String = entryDate.substring(0, 6)
 
-      ZBMedpp_doc(id, alternateId, bdSource, instance, collection, typeTmp, la, fo, pu, ti, aid, link, linkPdf, fullText, ab, au, entryDate, da)
+      ZBMedpp_doc(id, alternateId, bdSource, instance, collection, typeTmp, la, fo, dp, pu, ti, aid, link, linkPdf, fullText, ab, au, entryDate, da)
     }
   }
 
@@ -150,6 +152,7 @@ class ZBMedPP {
     {if (fields.pType.nonEmpty) setElement("type", fields.pType) else xml.NodeSeq.Empty}
     {if (fields.la.nonEmpty) setElement("la", fields.la) else xml.NodeSeq.Empty}
     {if (fields.fo.nonEmpty) setElement("fo", fields.fo) else xml.NodeSeq.Empty}
+    {if (fields.dp.nonEmpty) setElement("dp", fields.dp) else xml.NodeSeq.Empty}
     {if (fields.pu.nonEmpty) setElement("pu", fields.pu) else xml.NodeSeq.Empty}
     {if (fields.ti.nonEmpty) setElement("ti", fields.ti) else xml.NodeSeq.Empty}
     {if (fields.aid.nonEmpty) setElement("aid", fields.aid) else xml.NodeSeq.Empty}
@@ -174,7 +177,7 @@ class ZBMedPP {
   }
 
 //  def percentageProcessed(total: Int, qtdProccess: Int, perCent: Int): Unit = {
-//    val valuePerCent = perCent * total / 100
+//    val valuePerCent = (perCent * total) / 100
 //    if (qtdProccess % valuePerCent == 0) {
 //      val value = (qtdProccess.toDouble / total) * 100
 //      logger.info(s"+++${Math.round(value)}%")
