@@ -58,7 +58,7 @@ class ZBMedPP {
   private def mapElements(doc: Document): Try[ZBMedpp_doc] ={
     Try{
       val idValidated: String = getId(doc)
-      val id: String = s"ppzbmed-$idValidated"
+      val id: String = s"ppzbmed-$idValidated".replace("/", ".")
       val alternateId: String = getIdAlternate(doc.getString("source"), id)
       val bdSource: String = s"PREPRINT-${doc.getString("source").toUpperCase}"
       val instance: String = "regional"
