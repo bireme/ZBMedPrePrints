@@ -28,9 +28,10 @@ private case class ZBMedpp_doc(id: String,
                                fulltext: String,
                                ab: String,
                                au: Seq[String],
-                               //afiliacaoAutor: String,                 ***Dado indisponível***
                                entryDate: String,
-                               da: String)
+                               da: String,
+                               mfn: Seq[String])
+                               //afiliacaoAutor: String,                 ***Dado indisponível***
                                //versionMedrxivBiorxiv: String,          ***Dado indisponível***
                                // license: String,                       ***Dado indisponível***
                                //typeDocumentMedrxivBiorxiv: String,     ***Dado indisponível***
@@ -77,8 +78,9 @@ class ZBMedPP {
       val fullText: String = if (link.nonEmpty | linkPdf.nonEmpty) "1" else ""
       val ab: String = doc.getString("abstract").replace("<", "&lt;").replace(">", "&gt;")
       val au: Seq[String] = if (doc.get[BsonValue]("authors").isDefined) fieldToSeq(doc, "authors") else fieldToSeq(doc, "rel_authors")
+      val mfn: Seq[String] = if (doc.get[BsonValue]("all_annotations").isDefined) fieldToSeq(doc, "all_annotations").map(f => "^d" + f) else Seq("")
 
-      ZBMedpp_doc(id, alternateId, bdSource, instance, collection, typeTmp, la, fo, dp, pu, ti, aid, link, linkPdf, fullText, ab, au, entryDate, da)
+      ZBMedpp_doc(id, alternateId, bdSource, instance, collection, typeTmp, la, fo, dp, pu, ti, aid, link, linkPdf, fullText, ab, au, entryDate, da, mfn)
     }
   }
 
@@ -119,6 +121,9 @@ class ZBMedPP {
                                                  a <- ad}
                                             yield a
             authors.toSeq.filter(f => f.nonEmpty)
+          case "all_annotations" => if (doc.get[BsonArray]("all_annotations").get.asArray().asScala.map(f => f.asDocument().get("mfn")).nonEmpty){
+            doc.get[BsonArray](nameField).get.asArray().asScala.map(f => f.asDocument().get("mfn").asString().getValue.concat("")).toSeq
+          } else {Seq("")}
           case _ => doc.get[BsonArray](nameField).get.getValues.asScala.map(tag => tag.asString().getValue).toSeq
         }
       case _ => Seq(doc.getString(nameField))
@@ -163,6 +168,7 @@ class ZBMedPP {
     {if (fields.au.nonEmpty) {fields.au.map(f => setElement("au", f))} else xml.NodeSeq.Empty}
     {if (fields.entryDate.nonEmpty) setElement("entry_date", fields.entryDate) else xml.NodeSeq.Empty}
     {if (fields.da.nonEmpty) setElement("da", fields.da) else xml.NodeSeq.Empty}
+    {if (fields.mfn.nonEmpty) {fields.mfn.map(f => setElement("mj", f))} else xml.NodeSeq.Empty}
   </doc>
   }
 
