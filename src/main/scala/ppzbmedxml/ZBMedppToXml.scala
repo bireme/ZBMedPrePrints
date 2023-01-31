@@ -1,12 +1,14 @@
 package ppzbmedxml
 
+import org.bson.BsonDocument
 import org.mongodb.scala.Document
-import org.mongodb.scala.bson.{BsonArray, BsonValue}
+import org.mongodb.scala.bson.{BsonArray, BsonString, BsonValue}
 import org.slf4j.{Logger, LoggerFactory}
 
 import java.io.{BufferedWriter, File}
 import java.nio.charset.Charset
 import java.nio.file.Files
+import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 import scala.xml.{Elem, PrettyPrinter, XML}
@@ -121,13 +123,23 @@ class ZBMedPP {
                                                  a <- ad}
                                             yield a
             authors.toSeq.filter(f => f.nonEmpty)
-          case "all_annotations" => if (doc.get[BsonArray]("all_annotations").get.asArray().asScala.map(f => f.asDocument().get("mfn")).nonEmpty){
-            doc.get[BsonArray](nameField).get.asArray().asScala.map(f => f.asDocument().get("mfn").asString().getValue.concat("")).toSeq
-          } else {Seq("")}
+          case "all_annotations" => getMfn(doc, nameField)
           case _ => doc.get[BsonArray](nameField).get.getValues.asScala.map(tag => tag.asString().getValue).toSeq
         }
       case _ => Seq(doc.getString(nameField))
     }
+  }
+
+  def getMfn(doc: Document, nameField: String): Seq[String] = {
+
+    val resultDocsAnnotations: mutable.Buffer[BsonDocument] = doc.get[BsonArray](nameField).get.asArray().asScala.map(f => f ).map(f => f.asDocument())
+    val resultAnnotationsMfn: Seq[String] = resultDocsAnnotations.map(f => f.getOrDefault("mfn", BsonString(""))).map(f => f.asString().getValue).toSeq
+
+    resultAnnotationsMfn.foreach(f => if (f.isEmpty) {
+      logger.info(s"Document not contain mfn: _id mongodb ${doc.get("_id").get.asObjectId().getValue}")
+      logger.info("Processing documents...")
+    })
+    resultAnnotationsMfn
   }
 
   private def generateXml(elements: Seq[ZBMedpp_doc], pathOut: String): Try[Unit] = {
