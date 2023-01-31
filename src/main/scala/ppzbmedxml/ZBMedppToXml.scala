@@ -80,7 +80,7 @@ class ZBMedPP {
       val fullText: String = if (link.nonEmpty | linkPdf.nonEmpty) "1" else ""
       val ab: String = doc.getString("abstract").replace("<", "&lt;").replace(">", "&gt;")
       val au: Seq[String] = if (doc.get[BsonValue]("authors").isDefined) fieldToSeq(doc, "authors") else fieldToSeq(doc, "rel_authors")
-      val mfn: Seq[String] = if (doc.get[BsonValue]("all_annotations").isDefined) fieldToSeq(doc, "all_annotations").map(f => "^d" + f) else Seq("")
+      val mfn: Seq[String] = if (doc.get[BsonValue]("all_annotations").isDefined) fieldToSeq(doc, "all_annotations") else Seq("")
 
       ZBMedpp_doc(id, alternateId, bdSource, instance, collection, typeTmp, la, fo, dp, pu, ti, aid, link, linkPdf, fullText, ab, au, entryDate, da, mfn)
     }
@@ -135,10 +135,7 @@ class ZBMedPP {
     val resultDocsAnnotations: mutable.Buffer[BsonDocument] = doc.get[BsonArray](nameField).get.asArray().asScala.map(f => f ).map(f => f.asDocument())
     val resultAnnotationsMfn: Seq[String] = resultDocsAnnotations.map(f => f.getOrDefault("mfn", BsonString(""))).map(f => f.asString().getValue).toSeq
 
-    resultAnnotationsMfn.foreach(f => if (f.isEmpty) {
-      logger.info(s"Document not contain mfn: _id mongodb ${doc.get("_id").get.asObjectId().getValue}")
-      logger.info("Processing documents...")
-    })
+    resultAnnotationsMfn.foreach(f => if (f.nonEmpty) "^d".concat(f))
     resultAnnotationsMfn
   }
 
@@ -180,7 +177,7 @@ class ZBMedPP {
     {if (fields.au.nonEmpty) {fields.au.map(f => setElement("au", f))} else xml.NodeSeq.Empty}
     {if (fields.entryDate.nonEmpty) setElement("entry_date", fields.entryDate) else xml.NodeSeq.Empty}
     {if (fields.da.nonEmpty) setElement("da", fields.da) else xml.NodeSeq.Empty}
-    {if (fields.mfn.nonEmpty) {fields.mfn.map(f => setElement("mj", f))} else xml.NodeSeq.Empty}
+    {if (fields.mfn.nonEmpty) {fields.mfn.map(f => if (f.nonEmpty) setElement("mj", f))} else xml.NodeSeq.Empty}
   </doc>
   }
 
