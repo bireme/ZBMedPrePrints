@@ -132,7 +132,7 @@ class ZBMedPP {
   def getMfn(doc: Document, nameField: String): Seq[String] = {
 
     val resultDocsAnnotations: mutable.Seq[BsonValue] = doc.get[BsonArray](nameField).get.asArray().asScala
-    val resultAnnotationsMfn: Seq[Any] = resultDocsAnnotations.map(f => if (f.isDocument) f.asDocument().getOrDefault("mfn", BsonString("")).asString().getValue).toSeq
+    val resultAnnotationsMfn: Seq[Any] = resultDocsAnnotations.map(f => if (f.isDocument) f.asDocument().getOrDefault("mfn", BsonString("()")).asString().getValue).toSeq
 
     resultAnnotationsMfn.map(f => if (f.toString != "()") "^d".concat(f.toString) else f.toString.replace("()", ""))
   }
