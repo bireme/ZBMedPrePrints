@@ -9,7 +9,7 @@ class MongoTests extends AnyFunSuite with BeforeAndAfter{
 
   System.setProperty(ClassicConstants.CONFIG_FILE_PROPERTY, "./src/main/scala/resources/logback.xml")
 
-  val mongo: MongoExport = new MongoExport("ZBMed", "preprints", Option("localhost"), Option(27017))
+  val mongo: MongoExport = new MongoExport("ZBMed", "preprints_full", Option("172.17.1.71"), Option(27017))
 
   test("Validate session start with mongodb - checkLoginMongodb") {
     assert(mongo.checkLoginMongodb)

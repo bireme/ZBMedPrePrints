@@ -15,7 +15,7 @@ class ZBMedTests extends AnyFunSuite with BeforeAndAfter {
   val zbmedpp = new ZBMedPP
   val mongoTests = new MongoTests
   val qtdDocuments = 50
-  val pathFile = "***PATH***"
+  val pathFile = "/home/javaapps/sbt-projects/ppzbmed_testunit.xml"
 
   val xDocuments: Seq[Document] = mongoTests.mongo.findAll.take(qtdDocuments)
 
