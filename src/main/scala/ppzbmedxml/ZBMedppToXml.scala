@@ -1,6 +1,5 @@
 package ppzbmedxml
 
-import org.bson.BsonDocument
 import org.mongodb.scala.Document
 import org.mongodb.scala.bson.{BsonArray, BsonString, BsonValue}
 import org.slf4j.{Logger, LoggerFactory}
@@ -132,11 +131,10 @@ class ZBMedPP {
 
   def getMfn(doc: Document, nameField: String): Seq[String] = {
 
-    val resultDocsAnnotations: mutable.Buffer[BsonDocument] = doc.get[BsonArray](nameField).get.asArray().asScala.map(f => f ).map(f => f.asDocument())
-    val resultAnnotationsMfn: Seq[String] = resultDocsAnnotations.map(f => f.getOrDefault("mfn", BsonString(""))).map(f => f.asString().getValue).toSeq
+    val resultDocsAnnotations: mutable.Seq[BsonValue] = doc.get[BsonArray](nameField).get.asArray().asScala
+    val resultAnnotationsMfn: Seq[Any] = resultDocsAnnotations.map(f => if (f.isDocument) f.asDocument().getOrDefault("mfn", BsonString("")).asString().getValue).toSeq
 
-    resultAnnotationsMfn.foreach(f => if (f.nonEmpty) "^d".concat(f))
-    resultAnnotationsMfn
+    resultAnnotationsMfn.map(f => if (f.toString != "()") "^d".concat(f.toString) else f.toString.replace("()", ""))
   }
 
   private def generateXml(elements: Seq[ZBMedpp_doc], pathOut: String): Try[Unit] = {
