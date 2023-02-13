@@ -1,7 +1,8 @@
 import ch.qos.logback.classic.ClassicConstants
 import Main.logger
+import com.google.gson.Gson
 import org.slf4j.{Logger, LoggerFactory}
-import ppzbmedxml.ZBMedPP
+import ppzbmedxml.{ZBMedPP, ZBMedpp_doc}
 import mongodb.MongoExport
 import org.mongodb.scala.Document
 
@@ -29,23 +30,45 @@ class Main {
       val mExport: MongoExport = new MongoExport(parameters.database, parameters.collection, parameters.host, parameters.port)
       val docsMongo: Seq[Document] = mExport.findAll
 
-      docsMongo.length match {
-        case docs if docs == 0 => throw new Exception(s"${logger.warn("No documents found check collection and parameters")}")
-        case docs if docs > 0 => logger.info(s"Connected to mongodb - database: ${parameters.database}, collection: ${parameters.collection}," +
-          s" host: ${parameters.host.getOrElse("localhost")}, port: ${parameters.port.get}, user: ${parameters.user.getOrElse("None")}")
-          logger.info(s"Total documents: ${docsMongo.length}")
-      }
+      existDocuments(docsMongo, parameters)
+
       zbmedpp.toXml(docsMongo, parameters.xmlOut) match {
         case Success(value) =>
           logger.info(s"Inserting normalized ZBMed documents into the collection: ${mExport.nameCollection}")
           value.zipWithIndex.foreach{
             case (f, index) =>
-              mExport.insertDocumentNormalized(f)
-              zbmedpp.amountProcessed(value.length, index + 1, if (value.length >= 1000) 1000 else value.length)
+              insertDocumentNormalized(f, mExport)
+              zbmedpp.amountProcessed(value.length, index + 1, if (value.length >= 10000) 10000 else value.length)
           }
           s"\n${logger.info(s"FILE GENERATED SUCCESSFULLY IN: ${parameters.xmlOut}")}"
         case Failure(_) => logger.warn("FAILURE TO GENERATE FILE")
       }
+    }
+  }
+
+
+  def insertDocumentNormalized(doc: ZBMedpp_doc, mExport: MongoExport): Unit = {
+
+    val docJson: String = new Gson().toJson(doc)
+
+    if (!mExport.existCollection(mExport.nameCollection)) {
+      mExport.createCollection(mExport.nameCollection)
+      logger.info(s"Collection created: ${mExport.nameCollection}")
+    }
+    mExport.getCollection(mExport.nameCollection)
+    val isRepeted = mExport.isIdRepeted("id", doc.id)
+    if (!isRepeted) {
+      mExport.insertDocument(docJson)
+    }
+  }
+
+  def existDocuments(docsMongo: Seq[Document], parameters: PPZBMedXml_Parameters): Unit ={
+
+    docsMongo.length match {
+      case docs if docs == 0 => throw new Exception(s"${logger.warn("No documents found check collection and parameters")}")
+      case docs if docs > 0 => logger.info(s"Connected to mongodb - database: ${parameters.database}, collection: ${parameters.collection}," +
+        s" host: ${parameters.host.getOrElse("localhost")}, port: ${parameters.port.get}, user: ${parameters.user.getOrElse("None")}")
+        logger.info(s"Total documents: ${docsMongo.length}")
     }
   }
 }
