@@ -37,9 +37,9 @@ class Main {
       }
       zbmedpp.toXml(docsMongo, parameters.xmlOut) match {
         case Success(value) =>
+          logger.info(s"Inserting normalized ZBMed documents into the collection: ${mExport.nameCollection}")
           value.zipWithIndex.foreach{
             case (f, index) =>
-              logger.info(s"Inserting normalized ZBMed documents into the collection: ${mExport.nameCollection}")
               mExport.insertDocumentNormalized(f)
               zbmedpp.amountProcessed(value.length, index + 1, if (value.length >= 1000) 1000 else value.length)
           }
