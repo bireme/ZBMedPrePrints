@@ -45,11 +45,10 @@ class MongoExport(database: String,
 
     if (!existsCollectionNormalized(nameCollection)){
       dbase.createCollection(nameCollection)
-      logger.info(s"$nameCollection collection created")
+      logger.info(s"Collection created: $nameCollection")
       val collNormalized: MongoCollection[Document] = dbase.getCollection(nameCollection)
-      logger.info(s"Inserting ZBMedpp_doc standard documents...")
+      logger.info(s"Inserting normalized ZBMed documents into the collection: $nameCollection")
       collNormalized.insertOne(Document(docJson)).results()
-
     } else {
       val collNormalized: MongoCollection[Document] = dbase.getCollection(nameCollection)
       val isRepeted = collNormalized.aggregate(Seq(Aggregates.filter(Filters.equal("id", doc.id)))).results().length >= 2

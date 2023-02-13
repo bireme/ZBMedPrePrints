@@ -44,7 +44,7 @@ class ZBMedPP {
 
   def toXml(docsMongo: Seq[Document] , pathOut: String): Try[Seq[ZBMedpp_doc]] = {
     Try{
-      logger.info("+++Processing started")
+      logger.info("+++Normalization process started")
       val elem: Try[Seq[ZBMedpp_doc]] = generateXml(docsMongo.zipWithIndex.map{
         case (f, index) =>
           mapElements(f) match {

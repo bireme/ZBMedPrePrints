@@ -40,7 +40,7 @@ class Main {
           value.zipWithIndex.foreach{
             case (f, index) =>
               mExport.insertDocumentNormalized(f)
-              zbmedpp.amountProcessed(value.length, index + 1, 1000 )
+              zbmedpp.amountProcessed(value.length, index + 1, value.length./(3))
           }
           s"\n${logger.info(s"FILE GENERATED SUCCESSFULLY IN: ${parameters.xmlOut}")}"
         case Failure(_) => logger.warn("FAILURE TO GENERATE FILE")
