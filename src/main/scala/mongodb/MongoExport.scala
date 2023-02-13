@@ -32,6 +32,8 @@ class MongoExport(database: String,
   private val dbase: MongoDatabase = mongoClient.getDatabase(database)
   private val coll: MongoCollection[Document] = dbase.getCollection(collection)
 
+  val nameCollection: String = collection.concat("-Normalized")
+
   val logger: Logger = LoggerFactory.getLogger(classOf[MongoExport])
 
   def checkLoginMongodb: Boolean = mongoClient.startSession().results().nonEmpty
@@ -40,7 +42,6 @@ class MongoExport(database: String,
 
   def insertDocumentNormalized(doc: ZBMedpp_doc): Unit = {
 
-    val nameCollection: String = collection.concat("-Standard")
     val docJson = new Gson().toJson(doc)
 
     if (!existsCollectionNormalized(nameCollection)){

@@ -53,6 +53,7 @@ class ZBMedPP {
           case Failure(exception) => throw new Exception(logger.error(s"_id Document in Mongodb: ${f.get("_id").get.asObjectId().getValue} Exception: ", exception).toString)
         }
       }, pathOut)
+      logger.info("---Completed normalization")
       elem.get
     }
   }
