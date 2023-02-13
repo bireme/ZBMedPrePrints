@@ -12,57 +12,57 @@ import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 import scala.xml.{Elem, PrettyPrinter, XML}
 
-private case class ZBMedpp_doc(id: String,
-                               alternateId: String,
-                               dbSource: String,
-                               instance: String,
-                               collection: String,
-                               pType: String,
-                               la: String,
-                               fo: String,
-                               dp: String,
-                               pu: String,
-                               ti: String,
-                               aid: String,
-                               ur: Seq[String],
-                               urPdf: Seq[String],
-                               fulltext: String,
-                               ab: String,
-                               au: Seq[String],
-                               entryDate: String,
-                               da: String,
-                               mfn: Seq[String])
-                               //afiliacaoAutor: String,                 ***Dado indisponível***
-                               //versionMedrxivBiorxiv: String,          ***Dado indisponível***
-                               // license: String,                       ***Dado indisponível***
-                               //typeDocumentMedrxivBiorxiv: String,     ***Dado indisponível***
-                               //categoryMedrxivBiorxiv: String)         ***Dado indisponível***
+case class ZBMedpp_doc(id: String,
+                       alternateId: String,
+                       dbSource: String,
+                       instance: String,
+                       collection: String,
+                       pType: String,
+                       la: String,
+                       fo: String,
+                       dp: String,
+                       pu: String,
+                       ti: String,
+                       aid: String,
+                       ur: Seq[String],
+                       urPdf: Seq[String],
+                       fulltext: String,
+                       ab: String,
+                       au: Seq[String],
+                       entryDate: String,
+                       da: String,
+                       mj: Seq[String])
+                       //afiliacaoAutor: String,                 ***Dado indisponível***
+                       //versionMedrxivBiorxiv: String,          ***Dado indisponível***
+                       // license: String,                       ***Dado indisponível***
+                       //typeDocumentMedrxivBiorxiv: String,     ***Dado indisponível***
+                       //categoryMedrxivBiorxiv: String)         ***Dado indisponível***
 
 class ZBMedPP {
 
   val logger: Logger = LoggerFactory.getLogger(classOf[ZBMedPP])
 
-  def toXml(docsMongo: Seq[Document] , pathOut: String): Try[Unit] = {
+  def toXml(docsMongo: Seq[Document] , pathOut: String): Try[Seq[ZBMedpp_doc]] = {
     Try{
       logger.info("+++Processing started")
-      var i = 1
-      generateXml(docsMongo.map(f => mapElements(f) match {
-        case Success(value) => amountProcessed(docsMongo.length, i, 10000)
-          i += 1
-          value
-        case Failure(exception) =>
-          throw new Exception(logger.error(s"_id Document in Mongodb: ${f.get("_id").get.asObjectId().getValue} Exception: ", exception).toString)
-      }), pathOut)
+      val elem: Try[Seq[ZBMedpp_doc]] = generateXml(docsMongo.zipWithIndex.map{
+        case (f, index) =>
+          mapElements(f) match {
+          case Success(value) => amountProcessed(docsMongo.length, index + 1, 10000)
+            value
+          case Failure(exception) => throw new Exception(logger.error(s"_id Document in Mongodb: ${f.get("_id").get.asObjectId().getValue} Exception: ", exception).toString)
+        }
+      }, pathOut)
+      elem.get
     }
   }
-
 
   private def mapElements(doc: Document): Try[ZBMedpp_doc] ={
     Try{
       val idValidated: String = getId(doc)
       val id: String = s"ppzbmed-$idValidated".replace("/", ".")
       val alternateId: String = getIdAlternate(doc.getString("source"), id)
-      val bdSource: String = s"PREPRINT-${doc.getString("source").toUpperCase}"
+      val db: String = s"PREPRINT-${doc.getString("source").toUpperCase}"
       val instance: String = "regional"
       val collection: String = "09-preprints"
       val typeTmp: String = "preprint"
@@ -79,9 +79,9 @@ class ZBMedPP {
       val fullText: String = if (link.nonEmpty | linkPdf.nonEmpty) "1" else ""
       val ab: String = doc.getString("abstract").replace("<", "&lt;").replace(">", "&gt;")
       val au: Seq[String] = if (doc.get[BsonValue]("authors").isDefined) fieldToSeq(doc, "authors") else fieldToSeq(doc, "rel_authors")
-      val mfn: Seq[String] = if (doc.get[BsonValue]("all_annotations").isDefined) fieldToSeq(doc, "all_annotations") else Seq("")
+      val mj: Seq[String] = if (doc.get[BsonValue]("all_annotations").isDefined) fieldToSeq(doc, "all_annotations") else Seq("")
 
-      ZBMedpp_doc(id, alternateId, bdSource, instance, collection, typeTmp, la, fo, dp, pu, ti, aid, link, linkPdf, fullText, ab, au, entryDate, da, mfn)
+      ZBMedpp_doc(id, alternateId, db, instance, collection, typeTmp, la, fo, dp, pu, ti, aid, link, linkPdf, fullText, ab, au, entryDate, da, mj)
     }
   }
 
@@ -98,14 +98,12 @@ class ZBMedPP {
 
     /**sources: medrxiv, biorxiv, arxiv, researchsquare, ssrn, chemrxiv, preprints.org, psyarxiv, biohackrxiv, beilstein archives, authorea preprints*/
     source match {
-      case "medrxiv" => id.nonEmpty match {
-        case true => s"ppmedrxiv-${id.split("[/.]").reverse.head}"
-        case false => ""
-      }
-      case "biorxiv" => id.nonEmpty match {
-        case true => s"ppbiorxiv-${id.split("[/.]").reverse.head}"
-        case false => ""
-      }
+      case "medrxiv" => if (id.nonEmpty) {
+        s"ppmedrxiv-${id.split("[/.]").reverse.head}"
+      } else ""
+      case "biorxiv" => if (id.nonEmpty) {
+        s"ppbiorxiv-${id.split("[/.]").reverse.head}"
+      } else ""
       case _ => ""
     }
   }
@@ -137,7 +135,7 @@ class ZBMedPP {
     resultAnnotationsMfn.map(f => if (f.toString != "()") "^d".concat(f.toString) else f.toString.replace("()", ""))
   }
 
-  private def generateXml(elements: Seq[ZBMedpp_doc], pathOut: String): Try[Unit] = {
+  private def generateXml(elements: Seq[ZBMedpp_doc], pathOut: String): Try[Seq[ZBMedpp_doc]] = {
     Try{
       val xmlPath: BufferedWriter = Files.newBufferedWriter(new File(pathOut).toPath, Charset.forName("utf-8"))
       val printer: PrettyPrinter = new PrettyPrinter(50000, 0)
@@ -150,6 +148,8 @@ class ZBMedPP {
       XML.write(xmlPath, XML.loadString(printer.format(xmlFormat)), "utf-8", xmlDecl = true, null)
       xmlPath.flush()
       xmlPath.close()
+
+      elements
     }
   }
 
@@ -175,7 +175,7 @@ class ZBMedPP {
     {if (fields.au.nonEmpty) {fields.au.map(f => setElement("au", f))} else xml.NodeSeq.Empty}
     {if (fields.entryDate.nonEmpty) setElement("entry_date", fields.entryDate) else xml.NodeSeq.Empty}
     {if (fields.da.nonEmpty) setElement("da", fields.da) else xml.NodeSeq.Empty}
-    {if (fields.mfn.nonEmpty) {fields.mfn.map(f => if (f.nonEmpty) setElement("mj", f))} else xml.NodeSeq.Empty}
+    {if (fields.mj.nonEmpty) {fields.mj.map(f => if (f.nonEmpty) setElement("mj", f))} else xml.NodeSeq.Empty}
   </doc>
   }
 

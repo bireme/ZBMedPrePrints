@@ -3,6 +3,7 @@ import Main.logger
 import org.slf4j.{Logger, LoggerFactory}
 import ppzbmedxml.ZBMedPP
 import mongodb.MongoExport
+import org.mongodb.scala.Document
 
 import java.util.Date
 import scala.util.{Failure, Success, Try}
@@ -25,7 +26,7 @@ class Main {
       logger.info(s"Migration started - ZBMed preprints ${new Date()}")
 
       val mExport: MongoExport = new MongoExport(parameters.database, parameters.collection, parameters.host, parameters.port)
-      val docsMongo = mExport.findAll
+      val docsMongo: Seq[Document] = mExport.findAll
 
       docsMongo.length match {
         case docs if docs == 0 => throw new Exception(s"${logger.warn("No documents found check collection and parameters")}")
@@ -34,7 +35,9 @@ class Main {
           logger.info(s"Total documents: ${docsMongo.length}")
       }
       new ZBMedPP().toXml(docsMongo, parameters.xmlOut) match {
-        case Success(_) => s"\n${logger.info(s"FILE GENERATED SUCCESSFULLY IN: ${parameters.xmlOut}")}"
+        case Success(value) =>
+          value.foreach(mExport.insertDocumentNormalized)
+          s"\n${logger.info(s"FILE GENERATED SUCCESSFULLY IN: ${parameters.xmlOut}")}"
         case Failure(_) => logger.warn("FAILURE TO GENERATE FILE")
       }
     }

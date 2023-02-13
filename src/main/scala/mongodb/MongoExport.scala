@@ -1,10 +1,14 @@
 package mongodb
 
+import com.google.gson.Gson
 import org.mongodb.scala._
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
+import org.mongodb.scala.model.{Aggregates, Filters}
+import org.slf4j.{Logger, LoggerFactory}
+import ppzbmedxml.ZBMedpp_doc
 
 
 class MongoExport(database: String,
@@ -28,9 +32,36 @@ class MongoExport(database: String,
   private val dbase: MongoDatabase = mongoClient.getDatabase(database)
   private val coll: MongoCollection[Document] = dbase.getCollection(collection)
 
+  val logger: Logger = LoggerFactory.getLogger(classOf[MongoExport])
+
   def checkLoginMongodb: Boolean = mongoClient.startSession().results().nonEmpty
 
   def findAll: Seq[Document] = new DocumentObservable(coll.find()).observable.results()
+
+  def insertDocumentNormalized(doc: ZBMedpp_doc): Unit = {
+
+    val nameCollection: String = collection.concat("-Normalized")
+    val docJson = new Gson().toJson(doc)
+
+    if (!existsCollectionNormalized(nameCollection)){
+      dbase.createCollection(nameCollection)
+      logger.info(s"$nameCollection collection created")
+      val collNormalized: MongoCollection[Document] = dbase.getCollection(nameCollection)
+      collNormalized.insertOne(Document(docJson)).results()
+
+    } else {
+      val collNormalized: MongoCollection[Document] = dbase.getCollection(nameCollection)
+      val isRepeted = collNormalized.aggregate(Seq(Aggregates.filter(Filters.equal("id", doc.id)))).results().length >= 2
+      if (!isRepeted){
+        collNormalized.insertOne(Document(docJson)).results()
+      }
+    }
+  }
+
+  private def existsCollectionNormalized(nameCollection: String): Boolean = {
+    val listCollection = dbase.listCollectionNames().results()
+    listCollection.contains(nameCollection)
+  }
 
   implicit class DocumentObservable(val observable: Observable[Document]) extends ImplicitObservable[Document] {
     override val converter: Document => String = doc => doc.toJson()
