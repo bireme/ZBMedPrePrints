@@ -25,6 +25,7 @@ class Main {
       System.out.println("\n")
       logger.info(s"Migration started - ZBMed preprints ${new Date()}")
 
+      val zbmedpp = new ZBMedPP
       val mExport: MongoExport = new MongoExport(parameters.database, parameters.collection, parameters.host, parameters.port)
       val docsMongo: Seq[Document] = mExport.findAll
 
@@ -34,9 +35,13 @@ class Main {
           s" host: ${parameters.host.getOrElse("localhost")}, port: ${parameters.port.get}, user: ${parameters.user.getOrElse("None")}")
           logger.info(s"Total documents: ${docsMongo.length}")
       }
-      new ZBMedPP().toXml(docsMongo, parameters.xmlOut) match {
+      zbmedpp.toXml(docsMongo, parameters.xmlOut) match {
         case Success(value) =>
-          value.foreach(mExport.insertDocumentNormalized)
+          value.zipWithIndex.foreach{
+            case (f, index) =>
+              mExport.insertDocumentNormalized(f)
+              zbmedpp.amountProcessed(value.length, index + 1, 1000 )
+          }
           s"\n${logger.info(s"FILE GENERATED SUCCESSFULLY IN: ${parameters.xmlOut}")}"
         case Failure(_) => logger.warn("FAILURE TO GENERATE FILE")
       }

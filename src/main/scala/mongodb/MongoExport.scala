@@ -40,13 +40,14 @@ class MongoExport(database: String,
 
   def insertDocumentNormalized(doc: ZBMedpp_doc): Unit = {
 
-    val nameCollection: String = collection.concat("-Normalized")
+    val nameCollection: String = collection.concat("-Standard")
     val docJson = new Gson().toJson(doc)
 
     if (!existsCollectionNormalized(nameCollection)){
       dbase.createCollection(nameCollection)
       logger.info(s"$nameCollection collection created")
       val collNormalized: MongoCollection[Document] = dbase.getCollection(nameCollection)
+      logger.info(s"Inserting ZBMedpp_doc standard documents...")
       collNormalized.insertOne(Document(docJson)).results()
 
     } else {
