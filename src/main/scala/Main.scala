@@ -29,16 +29,18 @@ class Main {
       val zbmedpp = new ZBMedPP
       val mExport: MongoExport = new MongoExport(parameters.database, parameters.collection, parameters.host, parameters.port)
       val docsMongo: Seq[Document] = mExport.findAll
+      val nameCollectionNormalized: String = parameters.collection.concat("-Normalized")
 
-      existDocuments(docsMongo, parameters)
+      existDocumentsOrStop(docsMongo, parameters)
 
       zbmedpp.toXml(docsMongo, parameters.xmlOut) match {
         case Success(value) =>
-          logger.info(s"Inserting normalized ZBMed documents into the collection: ${mExport.nameCollection}")
+          logger.info(s"Writing normalized documents in collection: $nameCollectionNormalized")
           value.zipWithIndex.foreach{
             case (f, index) =>
-              insertDocumentNormalized(f, mExport)
+              insertDocumentNormalized(f, mExport, nameCollectionNormalized)
               zbmedpp.amountProcessed(value.length, index + 1, if (value.length >= 10000) 10000 else value.length)
+              if (index == value.length) logger.info(s"FILE GENERATED SUCCESSFULLY IN: ${parameters.xmlOut}")
           }
           s"\n${logger.info(s"FILE GENERATED SUCCESSFULLY IN: ${parameters.xmlOut}")}"
         case Failure(_) => logger.warn("FAILURE TO GENERATE FILE")
@@ -47,22 +49,20 @@ class Main {
   }
 
 
-  def insertDocumentNormalized(doc: ZBMedpp_doc, mExport: MongoExport): Unit = {
+  def insertDocumentNormalized(doc: ZBMedpp_doc, mExport: MongoExport, nameCollectionNormalized: String): Unit = {
 
     val docJson: String = new Gson().toJson(doc)
 
-    if (!mExport.existCollection(mExport.nameCollection)) {
-      mExport.createCollection(mExport.nameCollection)
-      logger.info(s"Collection created: ${mExport.nameCollection}")
+    if (!mExport.existCollection(nameCollectionNormalized)) {
+      mExport.createCollection(nameCollectionNormalized)
     }
-    mExport.getCollection(mExport.nameCollection)
-    val isRepeted = mExport.isIdRepeted("id", doc.id)
-    if (!isRepeted) {
-      mExport.insertDocument(docJson)
+    val isFieldRepeted = mExport.isIdRepetedNormalized("id", doc.id)
+    if (!isFieldRepeted) {
+      mExport.insertDocumentNormalized(docJson)
     }
   }
 
-  def existDocuments(docsMongo: Seq[Document], parameters: PPZBMedXml_Parameters): Unit ={
+  def existDocumentsOrStop(docsMongo: Seq[Document], parameters: PPZBMedXml_Parameters): Unit ={
 
     docsMongo.length match {
       case docs if docs == 0 => throw new Exception(s"${logger.warn("No documents found check collection and parameters")}")
@@ -119,7 +119,7 @@ object Main {
         logger.info(timeAtProcessing(startDate))
         System.exit(0)
       case Failure(exception) =>
-        logger.error(if (exception.getMessage == "()") "Interrupted Processing!" else "Error: ", exception.toString)
+        logger.error(if (exception.getMessage == "") "Interrupted Processing!" else "Error: ", exception.toString)
         System.exit(1)
     }
   }

@@ -15,6 +15,7 @@ val logback = "1.4.5"
 val logging = "3.9.5"
 val scalatest = "3.2.15"
 val gsonVersion = "2.10.1"
+val jsonOrgVersion = "20220924"
 
 
 libraryDependencies ++= Seq(
@@ -23,5 +24,5 @@ libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % logback,
   "com.typesafe.scala-logging" %% "scala-logging" % logging,
   "org.scalatest" %% "scalatest" % scalatest % "test",
-  "com.google.code.gson" % "gson" % gsonVersion
+  "com.google.code.gson" % "gson" % gsonVersion,
 )

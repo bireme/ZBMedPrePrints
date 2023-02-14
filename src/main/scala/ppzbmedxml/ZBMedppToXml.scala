@@ -48,12 +48,12 @@ class ZBMedPP {
       val elem: Try[Seq[ZBMedpp_doc]] = generateXml(docsMongo.zipWithIndex.map{
         case (f, index) =>
           mapElements(f) match {
-          case Success(value) => amountProcessed(docsMongo.length, index + 1, 10000)
+          case Success(value) => amountProcessed(docsMongo.length, index + 1, if (docsMongo.length >= 10000) 10000 else docsMongo.length)
             value
           case Failure(exception) => throw new Exception(logger.error(s"_id Document in Mongodb: ${f.get("_id").get.asObjectId().getValue} Exception: ", exception).toString)
         }
       }, pathOut)
-      logger.info("---Completed normalization")
+      logger.info("---Completed normalization process")
       elem.get
     }
   }

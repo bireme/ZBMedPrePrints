@@ -2,11 +2,11 @@ package mongodb
 
 import org.mongodb.scala._
 import org.mongodb.scala.model.{Aggregates, Filters}
+import org.slf4j.{Logger, LoggerFactory}
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
-import org.slf4j.{Logger, LoggerFactory}
 
 
 class MongoExport(database: String,
@@ -28,8 +28,8 @@ class MongoExport(database: String,
   private val mongoUri: String = s"mongodb://$usrPswStr$hostStr:$portStr"
   private val mongoClient: MongoClient = MongoClient(mongoUri)
   private val dbase: MongoDatabase = mongoClient.getDatabase(database)
-  val coll: MongoCollection[Document] = dbase.getCollection(collection)
-  val nameCollection: String = collection.concat("-Normalized")
+  private val coll: MongoCollection[Document] = dbase.getCollection(collection)
+  val CollectionNormalized: String = collection.concat("-Normalized")
 
   val logger: Logger = LoggerFactory.getLogger(classOf[MongoExport])
 
@@ -37,7 +37,10 @@ class MongoExport(database: String,
 
   def findAll: Seq[Document] = new DocumentObservable(coll.find()).observable.results()
 
-  def createCollection(nameCollection: String): Unit = dbase.createCollection(nameCollection)
+  def createCollection(nameCollection: String): Unit = {
+    dbase.createCollection(nameCollection).results()
+    logger.info(s"Collection created: $nameCollection")
+  }
 
   def getCollection(nameCollection: String): Unit = dbase.getCollection(nameCollection)
 
@@ -46,11 +49,19 @@ class MongoExport(database: String,
     listCollection.contains(nameCollection)
   }
 
-  def isIdRepeted(nameField: String, valueField: String): Boolean = {
-    coll.aggregate(Seq(Aggregates.filter(Filters.equal(nameField, valueField)))).results().length >= 2
+  def insertDocument(doc: String): Unit =  coll.insertOne(Document(doc)).results()
+
+  def isIdRepetedNormalized(nameField: String, valueField: String): Boolean = {
+    val collNomalized: MongoCollection[Document] = dbase.getCollection(CollectionNormalized)
+    collNomalized.aggregate(Seq(Aggregates.filter(Filters.equal(nameField, valueField)))).results().length >= 1
   }
 
-  def insertDocument(doc: String): Unit =  coll.insertOne(Document(doc)).results()
+  def insertDocumentNormalized(doc: String): Unit =  {
+    val collNomalized: MongoCollection[Document] = dbase.getCollection(CollectionNormalized)
+    collNomalized.insertOne(Document(doc)).results()
+  }
+
+  def close(): Unit = mongoClient.close()
 
   implicit class DocumentObservable(val observable: Observable[Document]) extends ImplicitObservable[Document] {
     override val converter: Document => String = doc => doc.toJson()
