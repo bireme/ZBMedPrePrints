@@ -29,7 +29,7 @@ class MongoExport(database: String,
   private val mongoClient: MongoClient = MongoClient(mongoUri)
   private val dbase: MongoDatabase = mongoClient.getDatabase(database)
   private val coll: MongoCollection[Document] = dbase.getCollection(collection)
-  val CollectionNormalized: String = collection.concat("-Normalized")
+  private val CollectionNormalized: String = collection.concat("-Normalized")
 
   val logger: Logger = LoggerFactory.getLogger(classOf[MongoExport])
 
@@ -42,18 +42,18 @@ class MongoExport(database: String,
     logger.info(s"Collection created: $nameCollection")
   }
 
-  def getCollection(nameCollection: String): Unit = dbase.getCollection(nameCollection)
+  //def getCollection(nameCollection: String): Unit = dbase.getCollection(nameCollection)
 
   def existCollection(nameCollection: String): Boolean = {
     val listCollection: Seq[String] = dbase.listCollectionNames().results()
     listCollection.contains(nameCollection)
   }
 
-  def insertDocument(doc: String): Unit =  coll.insertOne(Document(doc)).results()
+  //def insertDocument(doc: String): Unit =  coll.insertOne(Document(doc)).results()
 
   def isIdRepetedNormalized(nameField: String, valueField: String): Boolean = {
     val collNomalized: MongoCollection[Document] = dbase.getCollection(CollectionNormalized)
-    collNomalized.aggregate(Seq(Aggregates.filter(Filters.equal(nameField, valueField)))).results().length >= 1
+    collNomalized.aggregate(Seq(Aggregates.filter(Filters.equal(nameField, valueField)))).results().nonEmpty
   }
 
   def insertDocumentNormalized(doc: String): Unit =  {
