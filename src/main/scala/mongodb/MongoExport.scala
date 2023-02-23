@@ -1,6 +1,8 @@
 package mongodb
 
 import org.mongodb.scala._
+import org.mongodb.scala.model.{Aggregates, Filters}
+import org.slf4j.{Logger, LoggerFactory}
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.Await
@@ -27,10 +29,39 @@ class MongoExport(database: String,
   private val mongoClient: MongoClient = MongoClient(mongoUri)
   private val dbase: MongoDatabase = mongoClient.getDatabase(database)
   private val coll: MongoCollection[Document] = dbase.getCollection(collection)
+  private val CollectionNormalized: String = collection.concat("-Normalized")
+
+  val logger: Logger = LoggerFactory.getLogger(classOf[MongoExport])
 
   def checkLoginMongodb: Boolean = mongoClient.startSession().results().nonEmpty
 
   def findAll: Seq[Document] = new DocumentObservable(coll.find()).observable.results()
+
+  def createCollection(nameCollection: String): Unit = {
+    dbase.createCollection(nameCollection).results()
+    logger.info(s"Collection created: $nameCollection")
+  }
+
+  //def getCollection(nameCollection: String): Unit = dbase.getCollection(nameCollection)
+
+  def existCollection(nameCollection: String): Boolean = {
+    val listCollection: Seq[String] = dbase.listCollectionNames().results()
+    listCollection.contains(nameCollection)
+  }
+
+  //def insertDocument(doc: String): Unit =  coll.insertOne(Document(doc)).results()
+
+  def isIdRepetedNormalized(nameField: String, valueField: String): Boolean = {
+    val collNomalized: MongoCollection[Document] = dbase.getCollection(CollectionNormalized)
+    collNomalized.aggregate(Seq(Aggregates.filter(Filters.equal(nameField, valueField)))).results().nonEmpty
+  }
+
+  def insertDocumentNormalized(doc: String): Unit =  {
+    val collNomalized: MongoCollection[Document] = dbase.getCollection(CollectionNormalized)
+    collNomalized.insertOne(Document(doc)).results()
+  }
+
+  def close(): Unit = mongoClient.close()
 
   implicit class DocumentObservable(val observable: Observable[Document]) extends ImplicitObservable[Document] {
     override val converter: Document => String = doc => doc.toJson()

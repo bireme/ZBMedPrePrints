@@ -1,8 +1,10 @@
 import ch.qos.logback.classic.ClassicConstants
 import Main.logger
+import com.google.gson.Gson
 import org.slf4j.{Logger, LoggerFactory}
-import ppzbmedxml.ZBMedPP
+import ppzbmedxml.{ZBMedPP, ZBMedpp_doc}
 import mongodb.MongoExport
+import org.mongodb.scala.Document
 
 import java.util.Date
 import scala.util.{Failure, Success, Try}
@@ -24,19 +26,49 @@ class Main {
       System.out.println("\n")
       logger.info(s"Migration started - ZBMed preprints ${new Date()}")
 
+      val zbmedpp = new ZBMedPP
       val mExport: MongoExport = new MongoExport(parameters.database, parameters.collection, parameters.host, parameters.port)
-      val docsMongo = mExport.findAll
+      val docsMongo: Seq[Document] = mExport.findAll
+      val nameCollectionNormalized: String = parameters.collection.concat("-Normalized")
 
-      docsMongo.length match {
-        case docs if docs == 0 => throw new Exception(s"${logger.warn("No documents found check collection and parameters")}")
-        case docs if docs > 0 => logger.info(s"Connected to mongodb - database: ${parameters.database}, collection: ${parameters.collection}," +
-          s" host: ${parameters.host.getOrElse("localhost")}, port: ${parameters.port.get}, user: ${parameters.user.getOrElse("None")}")
-          logger.info(s"Total documents: ${docsMongo.length}")
-      }
-      new ZBMedPP().toXml(docsMongo, parameters.xmlOut) match {
-        case Success(_) => s"\n${logger.info(s"FILE GENERATED SUCCESSFULLY IN: ${parameters.xmlOut}")}"
+      existDocumentsOrStop(docsMongo, parameters)
+
+      zbmedpp.toXml(docsMongo, parameters.xmlOut) match {
+        case Success(value) =>
+          logger.info(s"Writing normalized documents in collection: $nameCollectionNormalized")
+          value.zipWithIndex.foreach{
+            case (f, index) =>
+              insertDocumentNormalized(f, mExport, nameCollectionNormalized)
+              zbmedpp.amountProcessed(value.length, index + 1, if (value.length >= 10000) 10000 else value.length)
+              if (index == value.length) logger.info(s"FILE GENERATED SUCCESSFULLY IN: ${parameters.xmlOut}")
+          }
+          s"\n${logger.info(s"FILE GENERATED SUCCESSFULLY IN: ${parameters.xmlOut}")}"
         case Failure(_) => logger.warn("FAILURE TO GENERATE FILE")
       }
+    }
+  }
+
+
+  def insertDocumentNormalized(doc: ZBMedpp_doc, mExport: MongoExport, nameCollectionNormalized: String): Unit = {
+
+    val docJson: String = new Gson().toJson(doc)
+
+    if (!mExport.existCollection(nameCollectionNormalized)) {
+      mExport.createCollection(nameCollectionNormalized)
+    }
+    val isFieldRepeted = mExport.isIdRepetedNormalized("id", doc.id)
+    if (!isFieldRepeted) {
+      mExport.insertDocumentNormalized(docJson)
+    }
+  }
+
+  def existDocumentsOrStop(docsMongo: Seq[Document], parameters: PPZBMedXml_Parameters): Unit ={
+
+    docsMongo.length match {
+      case docs if docs == 0 => throw new Exception(s"${logger.warn("No documents found check collection and parameters")}")
+      case docs if docs > 0 => logger.info(s"Connected to mongodb - database: ${parameters.database}, collection: ${parameters.collection}," +
+        s" host: ${parameters.host.getOrElse("localhost")}, port: ${parameters.port.get}, user: ${parameters.user.getOrElse("None")}")
+        logger.info(s"Total documents: ${docsMongo.length}")
     }
   }
 }
@@ -87,7 +119,7 @@ object Main {
         logger.info(timeAtProcessing(startDate))
         System.exit(0)
       case Failure(exception) =>
-        logger.error(if (exception.getMessage == "()") "Interrupted Processing!" else "Error: ", exception.toString)
+        logger.error(if (exception.getMessage == "") "Interrupted Processing!" else "Error: ", exception.toString)
         System.exit(1)
     }
   }
