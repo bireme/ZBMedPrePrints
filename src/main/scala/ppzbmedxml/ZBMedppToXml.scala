@@ -1,5 +1,6 @@
 package ppzbmedxml
 
+import models.ZBMedpp_doc
 import org.mongodb.scala.Document
 import org.mongodb.scala.bson.{BsonArray, BsonString, BsonValue}
 import org.slf4j.{Logger, LoggerFactory}
@@ -12,35 +13,9 @@ import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 import scala.xml.{Elem, PrettyPrinter, XML}
 
-case class ZBMedpp_doc(id: String,
-                       alternateId: String,
-                       dbSource: String,
-                       instance: String,
-                       collection: String,
-                       pType: String,
-                       la: String,
-                       fo: String,
-                       dp: String,
-                       pu: String,
-                       ti: String,
-                       aid: String,
-                       ur: Array[String],
-                       urPdf: Array[String],
-                       fulltext: String,
-                       ab: String,
-                       au: Array[String],
-                       entryDate: String,
-                       da: String,
-                       mj: Array[String])
-                       //afiliacaoAutor: String,                 ***Dado indisponível***
-                       //versionMedrxivBiorxiv: String,          ***Dado indisponível***
-                       // license: String,                       ***Dado indisponível***
-                       //typeDocumentMedrxivBiorxiv: String,     ***Dado indisponível***
-                       //categoryMedrxivBiorxiv: String)         ***Dado indisponível***
+class ZBMedppToXml {
 
-class ZBMedPP {
-
-  val logger: Logger = LoggerFactory.getLogger(classOf[ZBMedPP])
+  val logger: Logger = LoggerFactory.getLogger(classOf[ZBMedppToXml])
 
   def toXml(docsMongo: Seq[Document] , pathOut: String): Try[Seq[ZBMedpp_doc]] = {
     Try{
@@ -133,7 +108,7 @@ class ZBMedPP {
     val resultDocsAnnotations: mutable.Seq[BsonValue] = doc.get[BsonArray](nameField).get.asArray().asScala
     val resultAnnotationsMfn: Array[Any] = resultDocsAnnotations.map(f => if (f.isDocument) f.asDocument().getOrDefault("mfn", BsonString("()")).asString().getValue).toArray
 
-    resultAnnotationsMfn.map(f => if (f.toString != "()") "^d".concat(f.toString) else f.toString.replace("()", "")).toArray
+    resultAnnotationsMfn.map(f => if (f.toString != "()") "^d".concat(f.toString) else f.toString.replace("()", ""))
   }
 
   private def generateXml(elements: Seq[ZBMedpp_doc], pathOut: String): Try[Seq[ZBMedpp_doc]] = {
