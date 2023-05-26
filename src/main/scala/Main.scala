@@ -1,29 +1,14 @@
 import ch.qos.logback.classic.ClassicConstants
 import Main.logger
 import com.google.gson.Gson
+import models.{PPZBMedXml_Parameters, ZBMedpp_doc}
 import org.slf4j.{Logger, LoggerFactory}
-import ppzbmedxml.{ZBMedPP, ZBMedpp_doc}
+import ppzbmedxml.ZBMedppToXml
 import mongodb.MongoExport
 import org.mongodb.scala.Document
 
 import java.util.Date
 import scala.util.{Failure, Success, Try}
-
-
-case class PPZBMedXml_Parameters(xmlOut: String,
-                                 databaseRead: String,
-                                 collectionRead: String,
-                                 hostRead: Option[String],
-                                 portRead: Option[Int],
-                                 userRead: Option[String],
-                                 passwordRead: Option[String],
-                                 databaseWrite: Option[String],
-                                 collectionWrite: Option[String],
-                                 hostWrite: Option[String],
-                                 portWrite: Option[Int],
-                                 userWrite: Option[String],
-                                 passwordWrite: Option[String])
-
 
 class Main {
 
@@ -32,7 +17,7 @@ class Main {
       System.out.println("\n")
       logger.info(s"Migration started - ZBMed preprints ${new Date()}")
 
-      val zbmedpp = new ZBMedPP
+      val zbmedpp = new ZBMedppToXml
       val mExportRead: MongoExport = new MongoExport(parameters.databaseRead, parameters.collectionRead, parameters.hostRead, parameters.portRead)
       val mExportWrite: MongoExport = new MongoExport(parameters.databaseWrite.getOrElse(parameters.databaseRead),
         parameters.collectionWrite.getOrElse(parameters.collectionRead), parameters.hostWrite, parameters.portWrite)
@@ -114,7 +99,7 @@ object Main {
         else map + (split(0).substring(1) -> split(1))
     }
 
-    if (!Set("xmlout", "database", "collection").forall(parameters.contains)) usage()
+    if (!Set("xmlout", "databaseRead", "collectionRead").forall(parameters.contains)) usage()
 
     val xmlOut: String = parameters("xmlout")
     val databaseRead: String = parameters("databaseRead")
