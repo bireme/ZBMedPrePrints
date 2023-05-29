@@ -29,7 +29,6 @@ class MongoDB(database: String,
   private val mongoClient: MongoClient = MongoClient(mongoUri)
   private val dbase: MongoDatabase = mongoClient.getDatabase(database)
   private val coll: MongoCollection[Document] = dbase.getCollection(collection)
-  private val CollectionNormalized: String = collection.concat("-Normalized")
 
   val logger: Logger = LoggerFactory.getLogger(classOf[MongoDB])
 
@@ -52,12 +51,12 @@ class MongoDB(database: String,
   //def insertDocument(doc: String): Unit =  coll.insertOne(Document(doc)).results()
 
   def isIdRepetedNormalized(nameField: String, valueField: String): Boolean = {
-    val collNomalized: MongoCollection[Document] = dbase.getCollection(CollectionNormalized)
+    val collNomalized: MongoCollection[Document] = dbase.getCollection(collection)
     collNomalized.aggregate(Seq(Aggregates.filter(Filters.equal(nameField, valueField)))).results().nonEmpty
   }
 
   def insertDocumentNormalized(doc: String): Unit =  {
-    val collNomalized: MongoCollection[Document] = dbase.getCollection(CollectionNormalized)
+    val collNomalized: MongoCollection[Document] = dbase.getCollection(collection)
     collNomalized.insertOne(Document(doc)).results()
   }
 
