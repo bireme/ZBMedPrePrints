@@ -1,74 +1,15 @@
 import ch.qos.logback.classic.ClassicConstants
-import Main.logger
-import com.google.gson.Gson
-import models.{PPZBMedXml_Parameters, ZBMedpp_doc}
+import models.PPZBMedXml_Parameters
 import org.slf4j.{Logger, LoggerFactory}
-import ppzbmedxml.ZBMedppToXml
-import mongodb.MongoExport
-import org.mongodb.scala.Document
+import operation.ZBMedExportXML
 
+import scala.util.{Failure, Success}
 import java.util.Date
-import scala.util.{Failure, Success, Try}
-
-class Main {
-
-  private def exportXml(parameters: PPZBMedXml_Parameters): Try[Unit] = {
-    Try {
-      System.out.println("\n")
-      logger.info(s"Migration started - ZBMed preprints ${new Date()}")
-
-      val zbmedpp = new ZBMedppToXml
-      val mExportRead: MongoExport = new MongoExport(parameters.databaseRead, parameters.collectionRead, parameters.hostRead, parameters.portRead)
-      val mExportWrite: MongoExport = new MongoExport(parameters.databaseWrite.getOrElse(parameters.databaseRead),
-        parameters.collectionWrite.getOrElse(parameters.collectionRead), parameters.hostWrite, parameters.portWrite)
-      val docsMongo: Seq[Document] = mExportRead.findAll
-
-      existDocumentsOrStop(docsMongo, parameters)
-
-      zbmedpp.toXml(docsMongo, parameters.xmlOut) match {
-        case Success(value) =>
-          logger.info(s"Writing normalized documents in collection: ${parameters.collectionWrite}")
-          value.zipWithIndex.foreach{
-            case (f, index) =>
-              insertDocumentNormalized(f, mExportWrite, parameters.collectionWrite.get)
-              zbmedpp.amountProcessed(value.length, index + 1, if (value.length >= 10000) 10000 else value.length)
-              if (index == value.length) logger.info(s"FILE GENERATED SUCCESSFULLY IN: ${parameters.xmlOut}")
-          }
-          s"\n${logger.info(s"FILE GENERATED SUCCESSFULLY IN: ${parameters.xmlOut}")}"
-        case Failure(_) => logger.warn("FAILURE TO GENERATE FILE")
-      }
-    }
-  }
-
-
-  def insertDocumentNormalized(doc: ZBMedpp_doc, mExport: MongoExport, nameCollectionNormalized: String): Unit = {
-
-    val docJson: String = new Gson().toJson(doc)
-
-    if (!mExport.existCollection(nameCollectionNormalized)) {
-      mExport.createCollection(nameCollectionNormalized)
-    }
-    val isFieldRepeted = mExport.isIdRepetedNormalized("id", doc.id)
-    if (!isFieldRepeted) {
-      mExport.insertDocumentNormalized(docJson)
-    }
-  }
-
-  def existDocumentsOrStop(docsMongo: Seq[Document], parameters: PPZBMedXml_Parameters): Unit ={
-
-    docsMongo.length match {
-      case docs if docs == 0 => throw new Exception(s"${logger.warn("No documents found check collection and parameters")}")
-      case docs if docs > 0 => logger.info(s"Connected to mongodb - database: ${parameters.databaseRead}, collection: ${parameters.collectionRead}," +
-        s" host: ${parameters.hostRead.getOrElse("localhost")}, port: ${parameters.portRead.getOrElse(27017)}, user: ${parameters.userRead.getOrElse("None")}")
-        logger.info(s"Total documents: ${docsMongo.length}")
-    }
-  }
-}
 
 object Main {
 
   System.setProperty(ClassicConstants.CONFIG_FILE_PROPERTY, "./src/main/scala/resources/logback.xml")
-  val logger: Logger = LoggerFactory.getLogger(classOf[Main])
+  val logger: Logger = LoggerFactory.getLogger(classOf[ZBMedExportXML])
 
 
   private def usage(): Unit = {
@@ -120,7 +61,7 @@ object Main {
       userRead, passwordRead, databaseWrite, collectionWrite, hostWrite, portWrite, userWrite, passwordWrite)
     val startDate: Date = new Date()
 
-    (new Main).exportXml(params) match {
+    (new ZBMedExportXML).exportXml(params) match {
       case Success(_) =>
         logger.info(timeAtProcessing(startDate))
         System.exit(0)

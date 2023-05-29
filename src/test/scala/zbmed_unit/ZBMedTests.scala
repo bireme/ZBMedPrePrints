@@ -5,7 +5,7 @@ import mongodb_unit.MongoTests
 import org.mongodb.scala.Document
 import org.scalatest.BeforeAndAfter
 import org.scalatest.funsuite.AnyFunSuite
-import ppzbmedxml.ZBMedppToXml
+import operation.ZBMedppToXml
 
 
 class ZBMedTests extends AnyFunSuite with BeforeAndAfter {

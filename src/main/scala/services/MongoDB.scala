@@ -1,4 +1,4 @@
-package mongodb
+package services
 
 import org.mongodb.scala._
 import org.mongodb.scala.model.{Aggregates, Filters}
@@ -9,12 +9,12 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
 
-class MongoExport(database: String,
-                  collection: String,
-                  host: Option[String] = None,
-                  port: Option[Int] = None,
-                  user: Option[String] = None,
-                  password: Option[String] = None) {
+class MongoDB(database: String,
+              collection: String,
+              host: Option[String] = None,
+              port: Option[Int] = None,
+              user: Option[String] = None,
+              password: Option[String] = None) {
   require((user.isEmpty && password.isEmpty) || (user.nonEmpty && password.nonEmpty))
 
   private val hostStr: String = host.getOrElse("localhost")
@@ -31,7 +31,7 @@ class MongoExport(database: String,
   private val coll: MongoCollection[Document] = dbase.getCollection(collection)
   private val CollectionNormalized: String = collection.concat("-Normalized")
 
-  val logger: Logger = LoggerFactory.getLogger(classOf[MongoExport])
+  val logger: Logger = LoggerFactory.getLogger(classOf[MongoDB])
 
   def checkLoginMongodb: Boolean = mongoClient.startSession().results().nonEmpty
 
