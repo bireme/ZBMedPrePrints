@@ -14,7 +14,8 @@ class MongoDB(database: String,
               host: Option[String] = None,
               port: Option[Int] = None,
               user: Option[String] = None,
-              password: Option[String] = None) {
+              password: Option[String] = None,
+              append: Boolean) {
   require((user.isEmpty && password.isEmpty) || (user.nonEmpty && password.nonEmpty))
 
   private val hostStr: String = host.getOrElse("localhost")
@@ -28,7 +29,12 @@ class MongoDB(database: String,
   private val mongoUri: String = s"mongodb://$usrPswStr$hostStr:$portStr"
   private val mongoClient: MongoClient = MongoClient(mongoUri)
   private val dbase: MongoDatabase = mongoClient.getDatabase(database)
-  private val coll: MongoCollection[Document] = dbase.getCollection(collection)
+  private val coll: MongoCollection[Document] = {
+    if (append) dbase.getCollection(collection)
+    else
+      dbase.getCollection(collection).drop().results()
+      dbase.getCollection(collection)
+  }
 
   val logger: Logger = LoggerFactory.getLogger(classOf[MongoDB])
 
