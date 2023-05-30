@@ -18,13 +18,18 @@ class ZBMedExportXML {
       System.out.println("\n")
       logger.info(s"Migration started - ZBMed preprints ${new Date()}")
 
-      val zbmedpp = new ZBMedppToXml
-      val mExportRead: MongoDB = new MongoDB(parameters.databaseRead, parameters.collectionRead, parameters.hostRead, parameters.portRead)
+      val mExportRead: MongoDB = new MongoDB(parameters.databaseRead, parameters.collectionRead, parameters.hostRead,
+        parameters.portRead, parameters.userRead, parameters.passwordRead, parameters.append)
+
       val mExportWrite: MongoDB = new MongoDB(parameters.databaseWrite.getOrElse(parameters.databaseRead),
-        parameters.collectionWrite.getOrElse(parameters.collectionRead), parameters.hostWrite, parameters.portWrite)
+        parameters.collectionWrite.getOrElse(parameters.collectionRead), parameters.hostWrite, parameters.portWrite,
+        parameters.userWrite, parameters.passwordWrite, parameters.append)
+
       val docsMongo: Seq[Document] = mExportRead.findAll
 
       existDocumentsOrStop(docsMongo, parameters)
+
+      val zbmedpp: ZBMedppToXml = new ZBMedppToXml
 
       zbmedpp.toXml(docsMongo, parameters.xmlOut) match {
         case Success(value) =>
