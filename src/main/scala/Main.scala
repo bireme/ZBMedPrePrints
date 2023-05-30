@@ -26,6 +26,7 @@ object Main {
     System.err.println("[-portWrite=<number>]     - MongoDB server port number. Default value is 27017 Normalized")
     System.err.println("[-userWrite=<name>])      - MongoDB user name Normalized")
     System.err.println("[-passwordWrite=<pwd>]    - MongoDB user password Normalized")
+    System.err.println("[--append]                - If present, will compose the collection without clearing it first")
     System.exit(1)
   }
 
@@ -56,9 +57,10 @@ object Main {
     val portWrite: Option[Int] = parameters.get("portWrite").flatMap(_.toIntOption)
     val userWrite: Option[String] = parameters.get("userWrite")
     val passwordWrite: Option[String] = parameters.get("passwordWrite")
+    val append: Boolean = parameters.contains("append")
 
     val params: PPZBMedXml_Parameters = PPZBMedXml_Parameters(xmlOut, databaseRead, collectionRead, hostRead, portRead,
-      userRead, passwordRead, databaseWrite, collectionWrite, hostWrite, portWrite, userWrite, passwordWrite)
+      userRead, passwordRead, databaseWrite, collectionWrite, hostWrite, portWrite, userWrite, passwordWrite, append)
     val startDate: Date = new Date()
 
     (new ZBMedExportXML).exportXml(params) match {
