@@ -33,8 +33,11 @@ class ZBMedExportXML {
 
       zbmedpp.toXml(docsMongo, parameters.xmlOut) match {
         case Success(value) =>
-          logger.info(s"Writing normalized documents in:  database: ${parameters.databaseWrite.get}, collection: ${parameters.collectionWrite.get}," +
-            s" host: ${parameters.hostWrite.getOrElse("localhost")}, port: ${parameters.portWrite.getOrElse(27017)}, user: ${parameters.userWrite.getOrElse("None")}")
+          logger.info(s"Writing normalized documents in: database: ${parameters.databaseWrite.get}," +
+            s" collection: ${parameters.collectionWrite.get}," +
+            s" host: ${parameters.hostWrite.getOrElse("localhost")}," +
+            s" port: ${parameters.portWrite.getOrElse(27017)}," +
+            s" user: ${parameters.userWrite.getOrElse("None")}")
           value.zipWithIndex.foreach{
             case (f, index) =>
               insertDocumentNormalized(f, mExportWrite, parameters.collectionWrite.get)
