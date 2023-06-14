@@ -32,7 +32,7 @@ class MongoDB(database: String,
   private val coll: MongoCollection[Document] = {
     if (append) dbase.getCollection(collection)
     else
-      dbase.getCollection(collection).drop().results()
+      dbase.getCollection(collection).drop()
       dbase.getCollection(collection)
   }
 
