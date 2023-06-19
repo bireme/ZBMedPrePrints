@@ -62,7 +62,10 @@ class ZBMedppToXml {
   }
 
   def getId(doc: Document): String ={
-    val id = if (doc.getString("id") == null) "" else doc.getString("id")
+    val id = if (doc.getString("id") == null) {
+      logger.warn(s"ID Null")
+      ""
+    } else doc.getString("id")
     id match {
       case id if id.nonEmpty => id
       case id if id.isEmpty => logger.warn(s"Not Found id: _id mongodb ${doc.get("_id").get.asObjectId().getValue}")
