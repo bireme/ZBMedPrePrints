@@ -44,6 +44,9 @@ class ZBMedExportXML {
               zbmedpp.amountProcessed(value.length, index + 1, if (value.length >= 10000) 10000 else value.length)
               if (index == value.length) logger.info(s"FILE GENERATED SUCCESSFULLY IN: ${parameters.xmlOut}")
           }
+          mExportRead.close()
+          mExportWrite.close()
+
           s"\n${logger.info(s"FILE GENERATED SUCCESSFULLY IN: ${parameters.xmlOut}")}"
         case Failure(_) => logger.warn("FAILURE TO GENERATE FILE")
       }
@@ -57,7 +60,7 @@ class ZBMedExportXML {
     if (!mExport.existCollection(nameCollectionNormalized)) {
       mExport.createCollection(nameCollectionNormalized)
     }
-    val isFieldRepeted: Boolean = mExport.isIdRepetedNormalized("id", doc.id)
+    val isFieldRepeted: Boolean = mExport.isIdRepetedNormalized("aid", doc.aid)
     if (!isFieldRepeted) {
       mExport.insertDocumentNormalized(docJson)
     }
