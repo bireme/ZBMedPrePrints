@@ -28,9 +28,8 @@ class ZBMedExportXML {
 
       val docsMongo: Seq[Document] = mExportRead.findAll
 
-      existDocumentsOrStop(docsMongo, parameters) match {
-        case true => processData(docsMongo, parameters, mExportRead, mExportWrite)
-        case false => logger.info("--Finished")
+      if (existDocumentsOrStop(docsMongo, parameters)) {
+        processData(docsMongo, parameters, mExportRead, mExportWrite)
       }
     }
   }
@@ -52,22 +51,18 @@ class ZBMedExportXML {
             case (zbmedpp_doc, index) =>
               zbmedpp.amountProcessed(value.length, index + 1, if (value.length >= 10000) 10000 else value.length)
               buffer.append(zbmedpp_doc)
-              if (buffer.length % 1000 == 0 || buffer.length == value.length - 1) {
+              if (buffer.length % 1000 == 0 || index + 1 == value.length) {
                 insertDocumentNormalized(buffer, mExportWrite, parameters.collectionWrite.get)
                 buffer.clear()
-              }
-              if (buffer.nonEmpty) {
-                insertDocumentNormalized(buffer, mExportWrite, parameters.collectionWrite.get)
-                buffer.clear()
-              }
-              if (index + 1 == value.length) {
-                mExportRead.close()
-                mExportWrite.close()
-                return Try {
-                  logger.info(s"FILE GENERATED SUCCESSFULLY IN: ${parameters.xmlOut}")
-                }
               }
           }
+          if (buffer.nonEmpty) {
+            insertDocumentNormalized(buffer, mExportWrite, parameters.collectionWrite.get)
+            buffer.clear()
+          }
+          mExportRead.close()
+          mExportWrite.close()
+          logger.info(s"FILE GENERATED SUCCESSFULLY IN: ${parameters.xmlOut}")
         case Failure(_) => logger.warn("FAILURE TO GENERATE FILE")
       }
     }
@@ -84,15 +79,15 @@ class ZBMedExportXML {
   }
 
   def existDocumentsOrStop(docsMongo: Seq[Document], parameters: PPZBMedXml_Parameters): Boolean = {
-      docsMongo.length match {
-        case docs if docs == 0 =>
-          throw new Exception(s"${logger.warn("No documents found check collection and parameters")}")
-          false
-        case docs if docs > 0 =>
-          logger.info(s"Connected to mongodb - database: ${parameters.databaseRead}, collection: ${parameters.collectionRead}," +
-            s" host: ${parameters.hostRead.getOrElse("localhost")}, port: ${parameters.portRead.getOrElse(27017)}, user: ${parameters.userRead.getOrElse("None")}")
-          logger.info(s"Total documents: ${docsMongo.length}")
-          true
-      }
+    docsMongo.length match {
+      case docs if docs == 0 =>
+        throw new Exception(s"${logger.warn("No documents found check collection and parameters")}")
+        false
+      case docs if docs > 0 =>
+        logger.info(s"Connected to mongodb - database: ${parameters.databaseRead}, collection: ${parameters.collectionRead}," +
+          s" host: ${parameters.hostRead.getOrElse("localhost")}, port: ${parameters.portRead.getOrElse(27017)}, user: ${parameters.userRead.getOrElse("None")}")
+        logger.info(s"Total documents: ${docsMongo.length}")
+        true
+    }
   }
 }
