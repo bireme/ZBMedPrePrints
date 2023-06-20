@@ -11,7 +11,7 @@ lazy val root = (project in file("."))
 
 val xmlVersion = "2.1.0"
 val mongoVersion = "4.9.0"
-val logback = "1.4.5"
+val logback = "1.4.7"
 val logging = "3.9.5"
 val scalatest = "3.2.15"
 val gsonVersion = "2.10.1"
