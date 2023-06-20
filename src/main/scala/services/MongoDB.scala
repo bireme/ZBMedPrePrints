@@ -32,7 +32,7 @@ class MongoDB(database: String,
   private val coll: MongoCollection[Document] = {
     if (append) dbase.getCollection(collection)
     else
-      dbase.getCollection(collection).drop()
+      dbase.getCollection(collection).drop().results()
       dbase.getCollection(collection)
   }
 
@@ -47,8 +47,6 @@ class MongoDB(database: String,
     logger.info(s"Collection created: $nameCollection")
   }
 
-  //def getCollection(nameCollection: String): Unit = dbase.getCollection(nameCollection)
-
   def existCollection(nameCollection: String): Boolean = {
     val listCollection: Seq[String] = dbase.listCollectionNames().results()
     listCollection.contains(nameCollection)
@@ -61,9 +59,9 @@ class MongoDB(database: String,
     collNomalized.aggregate(Seq(Aggregates.filter(Filters.equal(nameField, valueField)))).results().nonEmpty
   }
 
-  def insertDocumentNormalized(doc: String): Unit =  {
+  def insertDocumentNormalized(docs: List[String]): Unit =  {
     val collNomalized: MongoCollection[Document] = dbase.getCollection(collection)
-    collNomalized.insertOne(Document(doc)).results()
+    collNomalized.insertMany(docs.map(Document(_))).results()
   }
 
   def close(): Unit = mongoClient.close()
