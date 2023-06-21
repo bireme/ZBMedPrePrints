@@ -9,7 +9,7 @@ class MongoTests extends AnyFunSuite with BeforeAndAfter{
 
   System.setProperty(ClassicConstants.CONFIG_FILE_PROPERTY, "./src/main/scala/resources/logback.xml")
 
-  val mongo: MongoDB = new MongoDB("ZBMed", "preprints_full", Option("172.17.1.71"), Option(27017), append = false)
+  val mongo: MongoDB = new MongoDB("ZBMED_PPRINT", "preprints_full", Option("localhost"), Option(27017), append = true)
 
   test("Validate session start with mongodb - checkLoginMongodb") {
     assert(mongo.checkLoginMongodb)
