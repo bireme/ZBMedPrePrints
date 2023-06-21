@@ -60,6 +60,10 @@ class ZBMedExportXML {
             insertDocumentNormalized(buffer, mExportWrite, parameters.collectionWrite.get)
             buffer.clear()
           }
+          if (mExportRead.findAll.length != mExportWrite.findAll.length) {
+            logger.warn("---The quantity of documents differs between the collections")
+          }
+
           mExportRead.close()
           mExportWrite.close()
           logger.info(s"FILE GENERATED SUCCESSFULLY IN: ${parameters.xmlOut}")

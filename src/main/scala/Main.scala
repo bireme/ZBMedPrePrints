@@ -68,7 +68,7 @@ object Main {
         logger.info(timeAtProcessing(startDate))
         System.exit(0)
       case Failure(exception) =>
-        logger.error(if (exception.getMessage == "()") "Interrupted Processing!" else s"Error: ", exception.toString)
+        logger.error(if (exception.getMessage == "()") "Interrupted Processing!" else s"Error: ${exception.toString}")
         System.exit(1)
     }
   }

@@ -7,7 +7,6 @@ import org.scalatest.BeforeAndAfter
 import org.scalatest.funsuite.AnyFunSuite
 import operation.ZBMedppToXml
 
-
 class ZBMedTests extends AnyFunSuite with BeforeAndAfter {
 
   System.setProperty(ClassicConstants.CONFIG_FILE_PROPERTY, "./src/main/scala/resources/logback.xml")
@@ -15,7 +14,7 @@ class ZBMedTests extends AnyFunSuite with BeforeAndAfter {
   val zbmedpp = new ZBMedppToXml
   val mongoTests = new MongoTests
   val qtdDocuments = 50
-  val pathFile = "/home/javaapps/sbt-projects/ppzbmed_testunit.xml"
+  val pathFile = "/home/javaapps/sbt-projects/zbmed-mongodb/ppzbmed_testunit.xml"
 
   val xDocuments: Seq[Document] = mongoTests.mongo.findAll.take(qtdDocuments)
 

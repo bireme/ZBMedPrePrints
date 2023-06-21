@@ -44,7 +44,6 @@ class MongoDB(database: String,
 
   def createCollection(nameCollection: String): Unit = {
     dbase.createCollection(nameCollection).results()
-    logger.info(s"Collection created: $nameCollection")
   }
 
   def existCollection(nameCollection: String): Boolean = {
