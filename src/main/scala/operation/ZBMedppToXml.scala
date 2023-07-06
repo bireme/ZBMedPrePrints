@@ -134,6 +134,8 @@ class ZBMedppToXml {
 
   private def docToElem(fields: ZBMedpp_doc): Elem ={
 
+//    {if (fields.urPdf.nonEmpty) {fields.urPdf.map(f => setElement("ur", f))} else xml.NodeSeq.Empty}
+
   <doc>
     {if (fields.id.nonEmpty) setElement("id", fields.id) else xml.NodeSeq.Empty}
     {if (fields.alternateId.nonEmpty) setElement("alternate_id", fields.alternateId) else xml.NodeSeq.Empty}
@@ -147,11 +149,10 @@ class ZBMedppToXml {
     {if (fields.pu.nonEmpty) setElement("pu", fields.pu) else xml.NodeSeq.Empty}
     {if (fields.ti.nonEmpty) setElement("ti", fields.ti) else xml.NodeSeq.Empty}
     {if (fields.aid.nonEmpty) setElement("aid", fields.aid) else xml.NodeSeq.Empty}
-    {if (fields.ur.nonEmpty) {fields.ur.map(f => setElement("ur", f))} else xml.NodeSeq.Empty}
-    {if (fields.urPdf.nonEmpty) {fields.urPdf.map(f => setElement("ur", f))} else xml.NodeSeq.Empty}
+    {if (fields.ur.nonEmpty) {fields.ur.map(f => if (f.nonEmpty) setElement("ur", f))} else xml.NodeSeq.Empty}
     {if (fields.fulltext.nonEmpty) setElement("fulltext", fields.fulltext) else xml.NodeSeq.Empty}
     {if (fields.ab.nonEmpty) setElement("ab", fields.ab) else xml.NodeSeq.Empty}
-    {if (fields.au.nonEmpty) {fields.au.map(f => setElement("au", f))} else xml.NodeSeq.Empty}
+    {if (fields.au.nonEmpty) {fields.au.map(f => if (f.nonEmpty) setElement("au", f))} else xml.NodeSeq.Empty}
     {if (fields.entryDate.nonEmpty) setElement("entry_date", fields.entryDate) else xml.NodeSeq.Empty}
     {if (fields.da.nonEmpty) setElement("da", fields.da) else xml.NodeSeq.Empty}
     {if (fields.mj.nonEmpty) {fields.mj.map(f => if (f.nonEmpty) setElement("mj", f))} else xml.NodeSeq.Empty}
