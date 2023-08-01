@@ -22,9 +22,14 @@ class ZBMedExportXML {
       val mExportRead: MongoDB = new MongoDB(parameters.databaseRead, parameters.collectionRead, parameters.hostRead,
         parameters.portRead, parameters.userRead, parameters.passwordRead, true)
 
-      val mExportWrite: MongoDB = new MongoDB(parameters.databaseWrite.getOrElse(parameters.databaseRead),
-        parameters.collectionWrite.getOrElse(parameters.collectionRead), parameters.hostWrite, parameters.portWrite,
-        parameters.userWrite, parameters.passwordWrite, parameters.append)
+      val databaseWrite = parameters.databaseWrite.getOrElse(parameters.databaseRead)
+      val collectionWrite = parameters.collectionWrite.getOrElse(parameters.collectionRead.concat("-normalized"))
+      val hostWrite = parameters.hostWrite.orElse(parameters.hostRead)
+      val portWrite = parameters.portWrite.orElse(parameters.portRead)
+      val userWrite = parameters.userWrite.orElse(parameters.userRead)
+      val passwordWrite = parameters.passwordWrite.orElse(parameters.passwordRead)
+
+      val mExportWrite: MongoDB = new MongoDB(databaseWrite, collectionWrite, hostWrite, portWrite, userWrite, passwordWrite, parameters.append)
 
       val docsMongo: Seq[Document] = mExportRead.findAll
 
@@ -41,11 +46,11 @@ class ZBMedExportXML {
 
       zbmedpp.toXml(docsMongo, parameters.xmlOut) match {
         case Success(value) =>
-          logger.info(s"Writing normalized documents in: database: ${parameters.databaseWrite.get}," +
-            s" collection: ${parameters.collectionWrite.get}," +
-            s" host: ${parameters.hostWrite.getOrElse("localhost")}," +
-            s" port: ${parameters.portWrite.getOrElse(27017)}," +
-            s" user: ${parameters.userWrite.getOrElse("None")}")
+          logger.info(s"Writing normalized documents in: database: ${parameters.databaseWrite.getOrElse(parameters.databaseRead)}," +
+            s" collection: ${parameters.collectionWrite.getOrElse(parameters.collectionRead.concat("-normalized"))}," +
+            s" host: ${parameters.hostWrite.getOrElse(parameters.hostRead.getOrElse("localhost"))}," +
+            s" port: ${parameters.portWrite.getOrElse(parameters.portRead.getOrElse(27017))}," +
+            s" user: ${parameters.userWrite.getOrElse(parameters.userRead.getOrElse("None"))}")
 
           value.zipWithIndex.foreach {
             case (zbmedpp_doc, index) =>
