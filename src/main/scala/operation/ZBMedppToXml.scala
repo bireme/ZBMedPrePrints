@@ -50,7 +50,7 @@ class ZBMedppToXml {
       val link: Array[String] = fieldToSeq(doc, "link").filter(_ != doc.getString("pdfLink"))
       val linkPdf: Array[String] = fieldToSeq(doc, "pdfLink")
       val fullText: String = if (link.nonEmpty | linkPdf.nonEmpty) "1" else ""
-      val ab: String = doc.getString("abstract").toString.replace("<", "&lt;").replace(">", "&gt;")
+      val ab: String = doc.getString("abstract").replace("<", "&lt;").replace(">", "&gt;")
       val au: Array[String] = if (doc.containsKey("authors")) fieldToSeq(doc, "authors") else fieldToSeq(doc, "rel_authors")
       val mj: Array[String] = if (doc.containsKey("all_annotations")) fieldToSeq(doc, "all_annotations") else Array("")
 
@@ -87,7 +87,7 @@ class ZBMedppToXml {
   private def fieldToSeq(doc: Document, nameField: String): Array[String] = {
 
     doc.get(nameField) match {
-      //case str: String => Array(doc.getString(nameField))
+      case value if value.isInstanceOf[String] => Array(doc.getString(nameField))
       case _ =>
         val underlyingOption = Try {
           val instanceMirror = currentMirror.reflect(doc.get(nameField))
@@ -96,21 +96,16 @@ class ZBMedppToXml {
         }.toOption
         underlyingOption match {
           case Some(underlyingList) => underlyingList match {
-
-            case any: List[Any] =>
-              val h = any.toArray.map(f => mfnTest(f, nameField))
-              h
-            //case arrayAny: Array[Any] => arrayAny.map(_.toString)
-            //case other => other.toString
+            case any: List[Any] => any.toArray.map(f => getArrayValues(f, nameField)).filterNot(_.isEmpty)
           }
           case None => Array("")
         }
     }
   }
 
-  def mfnTest(any: Any, name: String) = {
+  def getArrayValues(any: Any, name: String): String = {
 
-    val h = any match {
+    val value: String = any match {
       case any: String => any
       case anyD: Document =>
         if (name == "all_annotations")
@@ -118,50 +113,10 @@ class ZBMedppToXml {
         else if (name == "rel_authors")
           anyD.getString("author_name")
         else anyD.getString(name)
-//        name match {
-//          case "pdfLink" => anyD.getString(name)
-//          case "mfn" => anyD.getString(name)
-//          case "link" => anyD.getString(name)
-//          case "all_annotations" => anyD.getString("mfn")
-//          case "authors" => anyD.getString(name)
-//          case "rel_authors" => anyD.getString("author_name")
-//        }
-//
-//        anyD.getString("author_name")
-//        anyD.getString("rel_authors")
     }
-    if (h == null) ""
-    else if (name == "all_annotations")
-      "^d".concat(h)
-    else h
-  }
-
-//  private def fieldToSeq(doc: Document, nameField: String): Array[String]={
-//
-//    doc.get[BsonValue](nameField).get match {
-//      case field if field.isArray =>
-//        nameField match {
-//          case "rel_authors" =>
-//            val authorsRel: Iterable[Iterable[String]] = doc.get[BsonValue](nameField).get.asArray().asScala.map(f =>
-//              f.asDocument().entrySet().asScala.map(f => f.getValue.asString().getValue))
-//            val authors: Iterable[String] = for {ad <- authorsRel
-//                                                 a <- ad}
-//                                            yield a
-//            authors.toArray.filter(f => f.nonEmpty)
-//          case "all_annotations" => getMfn(doc, nameField)
-//          case _ => doc.get[BsonArray](nameField).get.getValues.asScala.map(tag => tag.asString().getValue).toArray
-//        }
-//      case _ => Array(doc.getString(nameField))
-//    }
-//  }
-
-  def getMfn(doc: Document, nameField: String): Array[String] = {
-
-    val resultDocsAnnotations: Array[String] = doc.getString(nameField).toArray.map(_.toString)
-    //    val resultAnnotationsMfn = resultDocsAnnotations.map(f => if (f.isDocument) f.asDocument().getOrDefault("mfn", BsonString("()")).asString().getValue).toArray
-    //
-    //    resultAnnotationsMfn.map(f => if (f.toString != "()") "^d".concat(f.toString) else f.toString.replace("()", ""))
-    resultDocsAnnotations
+    if (value == null) ""
+    else if (name == "all_annotations") "^d".concat(value)
+    else value
   }
 
   private def generateXml(elements: Seq[ZBMedpp_doc], pathOut: String): Try[Iterator[ZBMedpp_doc]] = {
