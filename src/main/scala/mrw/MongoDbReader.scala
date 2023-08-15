@@ -59,6 +59,14 @@ class MongoDbReader(params: mdrParameters) {
     Option(documento)
   }
 
+  def collectionExists(nameColl: String = params.collection): Boolean = {
+    Try {
+      val collIterator = dbase.listCollectionNames().iterator()
+      val collSeq = Iterator.continually(collIterator).takeWhile(_.hasNext).map(_.next()).toSeq
+      collSeq.contains(nameColl)
+    }.getOrElse(false)
+  }
+
   def countDocuments(): Int = coll.countDocuments().toInt
 
   def iterator(query: Option[String] = None): Try[Iterator[Map[String, AnyRef]]] =

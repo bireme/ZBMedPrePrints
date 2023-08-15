@@ -16,10 +16,11 @@ class ZBMedppToXml {
 
   val logger: Logger = LoggerFactory.getLogger(classOf[ZBMedppToXml])
 
-  def toXml(docsMongo: Seq[Document], pathOut: String): Try[Iterator[ZBMedpp_doc]] = {
+  def normalizeData(docsMongo: Seq[Document], pathOut: String): Try[Iterator[ZBMedpp_doc]] = {
 
+    logger.info("+++Normalization process started")
     var index = 0
-    generateXml(docsMongo.map {
+    val zbmedppIteratorList: Try[Iterator[ZBMedpp_doc]] = generateXml(docsMongo.map {
      f => mapElements(f) match {
           case Success(value) =>
             index += 1
@@ -28,6 +29,8 @@ class ZBMedppToXml {
           case Failure(exception) => throw new Exception(logger.error(s"_id Document in Mongodb: ${f.get("_id")} Exception: ", exception).toString)
         }
     }, pathOut)
+    logger.info("---Completed normalization process")
+    zbmedppIteratorList
   }
 
   private def mapElements(doc: Document): Try[ZBMedpp_doc] = {
