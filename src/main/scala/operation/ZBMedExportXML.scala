@@ -17,18 +17,18 @@ class ZBMedExportXML {
   def exportXml(parameters: PPZBMedXml_Parameters): Try[Unit] = {
     Try {
       System.out.println("\n")
-      logger.info(s"Migration started - ZBMed preprints ${new Date()}")
+      logger.info(s"Normalization started - ZBMed preprints ${new Date()}")
 
       val paramsRead: mdrParameters = mdrParameters(parameters.databaseRead, parameters.collectionRead,
         parameters.hostRead, parameters.portRead, parameters.userRead, parameters.passwordRead)
       val mExportRead: MongoDbReader = new MongoDbReader(paramsRead)
 
       val databaseWrite: String = parameters.databaseWrite.getOrElse(parameters.databaseRead)
-      val collectionWrite: String = parameters.collectionWrite.getOrElse(parameters.collectionRead.concat("-normalized"))
-      val hostWrite: Option[String] = parameters.hostWrite.orElse(parameters.hostRead)
-      val portWrite: Option[Int] = parameters.portWrite.orElse(parameters.portRead)
-      val userWrite: Option[String] = parameters.userWrite.orElse(parameters.userRead)
-      val passwordWrite: Option[String] = parameters.passwordWrite.orElse(parameters.passwordRead)
+      val collectionWrite: String = parameters.collectionWrite.getOrElse(parameters.collectionRead.concat("Normalized"))
+      val hostWrite: Option[String] = Option(parameters.hostWrite.getOrElse(parameters.hostRead.getOrElse("localhost")))
+      val portWrite: Option[Int] = Option(parameters.portWrite.getOrElse(parameters.portRead.getOrElse(27017)))
+      val userWrite: Option[String] = parameters.userWrite orElse parameters.userRead
+      val passwordWrite: Option[String] = parameters.passwordWrite orElse parameters.passwordRead
 
       val paramsWrite: mdwParameters = mdwParameters(databaseWrite, collectionWrite, clear = true, addUpdDate = true, idField = None,
         hostWrite, portWrite, userWrite, passwordWrite)
