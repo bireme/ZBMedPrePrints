@@ -9,7 +9,7 @@ mongodbZbmed2xml() {
   $SBT_HOME/sbt "runMain ZBMedMongo2XML -xmlout=/bases/iahx/xml-inbox/covidwho/ppzbmed_regional.xml -databaseRead=ZBMEDPPRINT -collectionRead=preprintsfull -hostRead=172.17.1.230"
 }
 
-cd /home/javaapps/sbt-projects/zbmed-mongodb || exit
+cd /home/javaapps/sbt-projects/ZBMedPrePrints || exit
 
 SBT_HOME=/home/users/operacao/.local/share/coursier/bin
 
