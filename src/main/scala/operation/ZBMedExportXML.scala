@@ -48,9 +48,8 @@ class ZBMedExportXML {
       val zbmedpp: ZBMedppToXml = new ZBMedppToXml
       val documentSeq: Seq[Document] = docsMongo.map(mExportWrite.convertToDocument1)
 
-      zbmedpp.toXml(documentSeq, parameters.xmlOut) match {
+      zbmedpp.normalizeData(documentSeq, parameters.xmlOut) match {
         case Success(value) =>
-          logger.info("---Completed normalization process")
           logger.info(s"Writing normalized documents in: database: ${parameters.databaseWrite.getOrElse(parameters.databaseRead)}," +
             s" collection: ${parameters.collectionWrite.getOrElse(parameters.collectionRead.concat("-normalized"))}," +
             s" host: ${parameters.hostWrite.getOrElse(parameters.hostRead.getOrElse("localhost"))}," +

@@ -121,25 +121,44 @@ object ZBMedPre2Mongo extends App {
 
       val mongoReader: MongoDbReader = new MongoDbReader(rParam)
       val mongoWriter: MongoDbWriter = new MongoDbWriter(writerParameter)
-      val fromDate: String = wParams.fromDate.format(formatter)
-      val toDate: String = wParams.toDate.format(formatter)
-      val history: Option[mutable.Map[String, (LocalDate, String)]] = if (wParams.checkRepeatable)
-        Some(mutable.Map[String, (LocalDate, String)]()) else None
-      if (wParams.importByMonth) importPreprintsByMonth(mongoReader, mongoWriter, LocalDate.parse(fromDate),
-        LocalDate.parse(toDate), formatter, wParams.excludeSources, history)
-      else importPreprints(mongoReader, mongoWriter, LocalDate.parse(fromDate), LocalDate.parse(toDate), 0,
-        wParams.quantity, wParams.excludeSources, total=0, history)
+
+
+      if (mongoReader.collectionExists()){
+
+        val n1 = mongoReader.countDocuments()
+        importZBMed(wParams, formatter, mongoReader, mongoWriter)
+        val n2 = mongoReader.countDocuments()
+
+        if (n1 > n2) System.exit(1)
+
+      } else importZBMed(wParams, formatter, mongoReader, mongoWriter)
+
 
       mongoReader.close()
       mongoWriter.close()
 
-      val endDate: Date = new Date()
-      val elapsedTime: Long = endDate.getTime - startDate.getTime
-      val seconds0: Long = elapsedTime / 1000
-      val minutes: Long = seconds0 / 60
-      val seconds: Long = seconds0 % 60
-      println(s"\nProcessing time: ${minutes}min e ${seconds}s")
+      println(timeAtProcessing(startDate))
     }
+  }
+
+  def timeAtProcessing(startDate: Date): String = {
+    val endDate: Date = new Date()
+    val elapsedTime: Long = (endDate.getTime - startDate.getTime) / 1000
+    val minutes: Long = elapsedTime / 60
+    val seconds: Long = elapsedTime % 60
+    s"Processing time: ${minutes}min e ${seconds}s\n"
+  }
+
+  private def importZBMed(wParams: WriteParameters, formatter: DateTimeFormatter, mongoReader: MongoDbReader, mongoWriter: MongoDbWriter): Unit = {
+
+    val fromDate: String = wParams.fromDate.format(formatter)
+    val toDate: String = wParams.toDate.format(formatter)
+    val history: Option[mutable.Map[String, (LocalDate, String)]] = if (wParams.checkRepeatable)
+      Some(mutable.Map[String, (LocalDate, String)]()) else None
+    if (wParams.importByMonth) importPreprintsByMonth(mongoReader, mongoWriter, LocalDate.parse(fromDate),
+      LocalDate.parse(toDate), formatter, wParams.excludeSources, history)
+    else importPreprints(mongoReader, mongoWriter, LocalDate.parse(fromDate), LocalDate.parse(toDate), 0,
+      wParams.quantity, wParams.excludeSources, total = 0, history)
   }
 
   @tailrec
