@@ -106,7 +106,7 @@ object ZBMedPre2Mongo extends App {
 
   importPreprints(rParam, wParam, formatter) match {
     case Success(_) =>
-      logger.info("Importing documents finished!")
+      logger.info("Importing documents finished!\n")
       System.exit(0)
     case Failure(exception) =>
       logger.error(s"Importing documents ERROR: ${exception.getMessage}")
@@ -118,6 +118,8 @@ object ZBMedPre2Mongo extends App {
                               formatter: DateTimeFormatter): Try[Unit] = {
     Try {
       val startDate: Date = new Date()
+      logger.info(s"Import started - ZBMed preprints $startDate")
+
       val writerParameter: mdwParameters = mdwParameters(wParams.database, wParams.collection, wParams.reset,
         addUpdDate=true, idField=Some("id"), wParams.host, wParams.port, wParams.user, wParams.password)
 
