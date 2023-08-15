@@ -6,7 +6,7 @@ import operation.ZBMedExportXML
 import scala.util.{Failure, Success}
 import java.util.Date
 
-object Main {
+object ZBMedMongo2XML {
 
   System.setProperty(ClassicConstants.CONFIG_FILE_PROPERTY, "./src/main/scala/resources/logback.xml")
   val logger: Logger = LoggerFactory.getLogger(classOf[ZBMedExportXML])

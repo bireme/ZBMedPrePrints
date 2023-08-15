@@ -1,11 +1,10 @@
-package zbmp2m
-
+import ch.qos.logback.classic.ClassicConstants
 import mrw.{MongoDbReader, MongoDbWriter, mdrParameters, mdwParameters}
+import org.slf4j.{Logger, LoggerFactory}
 import play.api.libs.json._
 
-import java.net.http.{HttpClient, HttpResponse}
 import java.net.URI
-import java.net.http.HttpRequest
+import java.net.http.{HttpClient, HttpRequest, HttpResponse}
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Date
@@ -15,6 +14,9 @@ import scala.collection.mutable
 import scala.util.{Failure, Success, Try}
 
 object ZBMedPre2Mongo extends App {
+
+  System.setProperty(ClassicConstants.CONFIG_FILE_PROPERTY, "./src/main/scala/resources/logback.xml")
+  val logger: Logger = LoggerFactory.getLogger(getClass)
   private def usage(): Unit = {
     System.err.println("Import preprints articles from ZBMed API into a MongoDB collection")
     System.err.println("usage: ZBMedPre2Mongo <options>")
@@ -104,10 +106,10 @@ object ZBMedPre2Mongo extends App {
 
   importPreprints(rParam, wParam, formatter) match {
     case Success(_) =>
-      println("Importing documents finished!")
+      logger.info("Importing documents finished!")
       System.exit(0)
     case Failure(exception) =>
-      println(s"Importing documents ERROR: ${exception.getMessage}")
+      logger.error(s"Importing documents ERROR: ${exception.getMessage}")
       System.exit(1)
   }
 
@@ -137,7 +139,7 @@ object ZBMedPre2Mongo extends App {
       mongoReader.close()
       mongoWriter.close()
 
-      println(timeAtProcessing(startDate))
+      logger.info(timeAtProcessing(startDate))
     }
   }
 
@@ -178,7 +180,7 @@ object ZBMedPre2Mongo extends App {
         flatMap(response => insertDocuments(mongoImport, mongoExport, response, excludeSources, fromDate, history)) match {
         case Success((docs, relat, tot)) => (docs.length, relat, tot)
         case Failure(exception) =>
-          println(s"--- importPreprints error. fromDate=$fromDate toDate=$toDate error=${exception.getMessage}")
+          logger.error(s"--- importPreprints error. fromDate=$fromDate toDate=$toDate error=${exception.getMessage}")
           (0, "", 0)
       }
 
@@ -192,7 +194,7 @@ object ZBMedPre2Mongo extends App {
         }
       }
 
-      println(s"+++ importPreprints from=${from + quant} step_imported=$imported total_imported=${total + imported} " +
+      logger.info(s"+++ importPreprints from=${from + quant} step_imported=$imported total_imported=${total + imported} " +
         s"remaining=${nquantity.getOrElse(0)}")
       importPreprints(mongoImport, mongoExport, fromDate, toDate, nfrom, nquantity, excludeSources, total + imported, history)
     }
@@ -213,10 +215,10 @@ object ZBMedPre2Mongo extends App {
         flatMap(response => insertDocuments(mongoImport, mongoExport, response, excludeSources, fromDate, history)) match {
         case Success((docs, relat, tot)) => (docs.length, relat, tot)
         case Failure(exception) =>
-          println(s"--- importPreprints error. fromDate=$fromDate toDate=$toDate error=${exception.getMessage}")
+          logger.error(s"--- importPreprints error. fromDate=$fromDate toDate=$toDate error=${exception.getMessage}")
           (0, "", 0)
       }
-      println(s"+++ importPreprints fromDate=$fromDate toDate=$tDate2 total_imported=$imported")
+      logger.info(s"+++ importPreprints fromDate=$fromDate toDate=$tDate2 total_imported=$imported")
 
       val fDate =  tDate2.plusDays(1)
       importPreprintsByMonth(mongoImport, mongoExport, fDate, toDate, formatter, excludeSources, history)
@@ -263,14 +265,14 @@ object ZBMedPre2Mongo extends App {
                       val title: String = doc.getOrElse("title", "").toString
                       hist.get(id) match {
                         case Some((date, otherTitle)) =>
-                          println(s"--- insertDocuments error. fromDate=$fromDate id=$id otherDate=$date title=}$title " +
+                          logger.error(s"--- insertDocuments error. fromDate=$fromDate id=$id otherDate=$date title=}$title " +
                             s"otherTitle=$otherTitle")
                         case None =>
                           hist.addOne(id, (fromDate, title))
                           mongoExport.insertDocument(doc) match {
                             case Success(_) => ()
                             case Failure(exception) =>
-                              println(s"insertion error. id=$id reason:$exception")
+                              logger.error(s"insertion error. id=$id reason:$exception")
                           }
                       }
                   }
@@ -294,8 +296,7 @@ object ZBMedPre2Mongo extends App {
           content match {
             case cont: JsArray =>
               val docsSeq: Seq[JsObject] = fixFields(mongoImport, cont.value.map(_.as[JsObject]).toSeq, excludeSources).get
-              val docsUpddSeq: Seq[JsObject] = docsSeq.map(obj => obj + ("_updd", JsString(new Date().toString)))
-              val docsMap: Seq[Map[String, AnyRef]] = docsUpddSeq.map(convertJsObject)
+              val docsMap: Seq[Map[String, AnyRef]] = docsSeq.map(convertJsObject)
               docsMap
             case _ => throw new IllegalArgumentException(s"missing 'content' element: $docs")
           }
@@ -397,7 +398,7 @@ object ZBMedPre2Mongo extends App {
             case None => ""
           }
           case other =>
-            println(s"unknown thesaurus [$other]")
+            logger.warn(s"unknown thesaurus [$other]")
             ""
         }
         Some((tClass1, tId1))
@@ -434,7 +435,7 @@ object ZBMedPre2Mongo extends App {
           case None => None
         }
       case Failure(exception) =>
-        println(s"getMeshFields ERROR: id=$id status=$exception")
+        logger.error(s"getMeshFields ERROR: id=$id status=$exception")
         None
     }
   }

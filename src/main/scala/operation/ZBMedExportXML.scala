@@ -51,7 +51,7 @@ class ZBMedExportXML {
       zbmedpp.normalizeData(documentSeq, parameters.xmlOut) match {
         case Success(value) =>
           logger.info(s"Writing normalized documents in: database: ${parameters.databaseWrite.getOrElse(parameters.databaseRead)}," +
-            s" collection: ${parameters.collectionWrite.getOrElse(parameters.collectionRead.concat("-normalized"))}," +
+            s" collection: ${parameters.collectionWrite.getOrElse(parameters.collectionRead.concat("Normalized"))}," +
             s" host: ${parameters.hostWrite.getOrElse(parameters.hostRead.getOrElse("localhost"))}," +
             s" port: ${parameters.portWrite.getOrElse(parameters.portRead.getOrElse(27017))}," +
             s" user: ${parameters.userWrite.getOrElse(parameters.userRead.getOrElse("None"))}")
