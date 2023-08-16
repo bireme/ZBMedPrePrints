@@ -1,4 +1,4 @@
-# ZBMedPrePrints project
+# ZBMedPrePrints-processing project
 
 The project gets documents from mongodb and converts to xml utf-8, specific to ZBMedPrePrints.
 
