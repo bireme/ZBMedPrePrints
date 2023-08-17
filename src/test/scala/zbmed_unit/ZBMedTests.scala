@@ -5,7 +5,7 @@ package zbmed_unit
 //import org.mongodb.scala.Document
 import org.scalatest.BeforeAndAfter
 import org.scalatest.funsuite.AnyFunSuite
-//import operation.ZBMedppToXml
+//import org.bireme.processing.export.ZBMedppToXml
 
 class ZBMedTests extends AnyFunSuite with BeforeAndAfter {
 
