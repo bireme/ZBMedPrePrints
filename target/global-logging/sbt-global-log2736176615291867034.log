@@ -1,0 +1,123 @@
+[debug] > Exec(early(addDefaultCommands), None, None)
+[debug] > Exec(addDefaultCommands, None, None)
+[debug] > Exec(early(initialize), None, None)
+[debug] > Exec(initialize, None, None)
+[debug] > Exec(boot, None, None)
+[debug] > Exec(writeSbtVersion, None, None)
+[debug] > Exec(reload, None, None)
+[debug] > Exec(sbtStashOnFailure, None, None)
+[debug] > Exec(onFailure loadFailed, None, None)
+[debug] > Exec(loadp, None, None)
+[info] welcome to sbt 1.8.0 (Oracle Corporation Java 20.0.1)
+[debug]       Load.loadUnit: plugins took 84.2006ms
+[debug]       Load.loadUnit: defsScala took 0.5367ms
+[debug] [Loading] Scanning directory C:\Users\oliveirmic\.sbt\1.0\plugins
+[debug] [Loading] Found non-root projects 
+[debug] [Loading] Done in C:\Users\oliveirmic\.sbt\1.0\plugins, returning: ()
+[debug] deducing auto plugins based on known facts Set(Atom(sbt.plugins.CorePlugin)) and clauses Clauses(Clause(Atom(sbt.plugins.JvmPlugin),Set(Atom(sbt.plugins.IvyPlugin)))
+[debug] Clause(Atom(sbt.ScriptedPlugin),Set(Atom(sbt.plugins.JvmPlugin)))
+[debug] Clause(Atom(sbt.plugins.SbtPlugin),Set(Atom(sbt.ScriptedPlugin)))
+[debug] Clause(Atom(sbt.plugins.SemanticdbPlugin),Set(Atom(sbt.plugins.JvmPlugin)))
+[debug] Clause(Atom(sbt.plugins.JUnitXmlReportPlugin),Set(Atom(sbt.plugins.JvmPlugin)))
+[debug] Clause(Atom(sbt.plugins.MiniDependencyTreePlugin),Set(Atom(sbt.plugins.JvmPlugin)))
+[debug] Clause(Atom(sbt.plugins.CorePlugin),Set(Atom(sbt.plugins.IvyPlugin)))
+[debug] Clause(Atom(sbt.plugins.IvyPlugin),Set(Atom(sbt.plugins.JvmPlugin)))
+[debug] Clause(Atom(sbt.plugins.JvmPlugin),Set(Atom(sbt.plugins.SemanticdbPlugin)))
+[debug] Clause(Atom(sbt.plugins.JvmPlugin),Set(Atom(sbt.plugins.JUnitXmlReportPlugin)))
+[debug] Clause(Atom(sbt.plugins.CorePlugin),Set(Atom(sbt.plugins.Giter8TemplatePlugin)))
+[debug] Clause(Atom(sbt.plugins.JvmPlugin),Set(Atom(sbt.plugins.MiniDependencyTreePlugin))))
+[debug]   :: deduced result: Matched(sbt.plugins.CorePlugin,sbt.plugins.Giter8TemplatePlugin,sbt.plugins.IvyPlugin,sbt.plugins.JvmPlugin,sbt.plugins.MiniDependencyTreePlugin,sbt.plugins.JUnitXmlReportPlugin,sbt.plugins.SemanticdbPlugin)
+[debug] Plugins.deducer#function took 18.3084 ms
+[debug]           Load.resolveProject(global-plugins) took 37.8312ms
+[debug]         Load.loadTransitive: finalizeProject(Project(id global-plugins, base: C:\Users\oliveirmic\.sbt\1.0\plugins, plugins: List(<none>))) took 85.4671ms
+[debug] [Loading] Done in C:\Users\oliveirmic\.sbt\1.0\plugins, returning: (global-plugins)
+[debug]       Load.loadUnit: loadedProjectsRaw took 110.0104ms
+[debug]       Load.loadUnit: cleanEvalClasses took 0.2025ms
+[debug]     Load.loadUnit(file:/C:/Users/oliveirmic/.sbt/1.0/plugins/, ...) took 206.9753ms
+[debug]   Load.apply: load took 359.5391ms
+[debug]   Load.apply: resolveProjects took 5.6853ms
+[debug]   Load.apply: finalTransforms took 66.793ms
+[debug]   Load.apply: config.delegates took 6.3403ms
+[debug]   Load.apply: Def.make(settings)... took 306.9462ms
+[debug]   Load.apply: structureIndex took 79.6627ms
+[debug]   Load.apply: mkStreams took 2.1925ms
+[info] loading global plugins from C:\Users\oliveirmic\.sbt\1.0\plugins
+[debug] Running task... Cancel: Signal, check cycles: false, forcegc: true
+[debug] Load.defaultLoad until apply took 1782.3086ms
+[debug]           Load.loadUnit: plugins took 19.3125ms
+[debug]           Load.loadUnit: defsScala took 0.0056ms
+[debug] [Loading] Scanning directory C:\Desenvolvimento\bireme\ZBMedPrePrints\project
+[debug] [Loading] Found non-root projects 
+[debug] [Loading] Done in C:\Desenvolvimento\bireme\ZBMedPrePrints\project, returning: ()
+[debug] deducing auto plugins based on known facts Set(Atom(sbt.plugins.CorePlugin)) and clauses Clauses(Clause(Atom(sbt.plugins.JvmPlugin),Set(Atom(sbt.plugins.IvyPlugin)))
+[debug] Clause(Atom(sbt.ScriptedPlugin),Set(Atom(sbt.plugins.JvmPlugin)))
+[debug] Clause(Atom(sbt.plugins.SbtPlugin),Set(Atom(sbt.ScriptedPlugin)))
+[debug] Clause(Atom(sbt.plugins.SemanticdbPlugin),Set(Atom(sbt.plugins.JvmPlugin)))
+[debug] Clause(Atom(sbt.plugins.JUnitXmlReportPlugin),Set(Atom(sbt.plugins.JvmPlugin)))
+[debug] Clause(Atom(sbt.plugins.MiniDependencyTreePlugin),Set(Atom(sbt.plugins.JvmPlugin)))
+[debug] Clause(Atom(sbt.plugins.CorePlugin),Set(Atom(sbt.plugins.IvyPlugin)))
+[debug] Clause(Atom(sbt.plugins.IvyPlugin),Set(Atom(sbt.plugins.JvmPlugin)))
+[debug] Clause(Atom(sbt.plugins.JvmPlugin),Set(Atom(sbt.plugins.SemanticdbPlugin)))
+[debug] Clause(Atom(sbt.plugins.JvmPlugin),Set(Atom(sbt.plugins.JUnitXmlReportPlugin)))
+[debug] Clause(Atom(sbt.plugins.CorePlugin),Set(Atom(sbt.plugins.Giter8TemplatePlugin)))
+[debug] Clause(Atom(sbt.plugins.JvmPlugin),Set(Atom(sbt.plugins.MiniDependencyTreePlugin))))
+[debug]   :: deduced result: Matched(sbt.plugins.CorePlugin,sbt.plugins.Giter8TemplatePlugin,sbt.plugins.IvyPlugin,sbt.plugins.JvmPlugin,sbt.plugins.MiniDependencyTreePlugin,sbt.plugins.JUnitXmlReportPlugin,sbt.plugins.SemanticdbPlugin)
+[debug] Plugins.deducer#function took 1.6568 ms
+[debug]               Load.resolveProject(zbmedpreprints-build) took 1.1583ms
+[debug]             Load.loadTransitive: finalizeProject(Project(id zbmedpreprints-build, base: C:\Desenvolvimento\bireme\ZBMedPrePrints\project, plugins: List(<none>))) took 3.3067ms
+[debug] [Loading] Done in C:\Desenvolvimento\bireme\ZBMedPrePrints\project, returning: (zbmedpreprints-build)
+[debug]           Load.loadUnit: loadedProjectsRaw took 5.5298ms
+[debug]           Load.loadUnit: cleanEvalClasses took 0.0127ms
+[debug]         Load.loadUnit(file:/C:/Desenvolvimento/bireme/ZBMedPrePrints/project/, ...) took 25.6983ms
+[debug]       Load.apply: load took 26.9377ms
+[debug]       Load.apply: resolveProjects took 0.0859ms
+[debug]       Load.apply: finalTransforms took 7.5062ms
+[debug]       Load.apply: config.delegates took 0.3198ms
+[debug]       Load.apply: Def.make(settings)... took 54.7328ms
+[debug]       Load.apply: structureIndex took 26.2458ms
+[debug]       Load.apply: mkStreams took 0.0019ms
+[info] loading project definition from C:\Desenvolvimento\bireme\ZBMedPrePrints\project
+[debug] Running task... Cancel: Signal, check cycles: false, forcegc: true
+[debug]     Load.loadUnit: plugins took 298.0501ms
+[debug]     Load.loadUnit: defsScala took 0.0027ms
+[debug] [Loading] Scanning directory C:\Desenvolvimento\bireme\ZBMedPrePrints
+[debug]       Load.loadUnit: mkEval took 3.6489ms
+[debug] [Loading] Found root project root w/ remaining 
+[debug] deducing auto plugins based on known facts Set(Atom(sbt.plugins.CorePlugin)) and clauses Clauses(Clause(Atom(sbt.plugins.JvmPlugin),Set(Atom(sbt.plugins.IvyPlugin)))
+[debug] Clause(Atom(sbt.ScriptedPlugin),Set(Atom(sbt.plugins.JvmPlugin)))
+[debug] Clause(Atom(sbt.plugins.SbtPlugin),Set(Atom(sbt.ScriptedPlugin)))
+[debug] Clause(Atom(sbt.plugins.SemanticdbPlugin),Set(Atom(sbt.plugins.JvmPlugin)))
+[debug] Clause(Atom(sbt.plugins.JUnitXmlReportPlugin),Set(Atom(sbt.plugins.JvmPlugin)))
+[debug] Clause(Atom(sbt.plugins.MiniDependencyTreePlugin),Set(Atom(sbt.plugins.JvmPlugin)))
+[debug] Clause(Atom(sbt.plugins.CorePlugin),Set(Atom(sbt.plugins.IvyPlugin)))
+[debug] Clause(Atom(sbt.plugins.IvyPlugin),Set(Atom(sbt.plugins.JvmPlugin)))
+[debug] Clause(Atom(sbt.plugins.JvmPlugin),Set(Atom(sbt.plugins.SemanticdbPlugin)))
+[debug] Clause(Atom(sbt.plugins.JvmPlugin),Set(Atom(sbt.plugins.JUnitXmlReportPlugin)))
+[debug] Clause(Atom(sbt.plugins.CorePlugin),Set(Atom(sbt.plugins.Giter8TemplatePlugin)))
+[debug] Clause(Atom(sbt.plugins.JvmPlugin),Set(Atom(sbt.plugins.MiniDependencyTreePlugin))))
+[debug]   :: deduced result: Matched(sbt.plugins.CorePlugin,sbt.plugins.Giter8TemplatePlugin,sbt.plugins.IvyPlugin,sbt.plugins.JvmPlugin,sbt.plugins.MiniDependencyTreePlugin,sbt.plugins.JUnitXmlReportPlugin,sbt.plugins.SemanticdbPlugin)
+[debug] Plugins.deducer#function took 1.8081 ms
+[info] loading settings for project root from build.sbt ...
+[debug]         Load.resolveProject(root) took 2.5226ms
+[debug]       Load.loadTransitive: finalizeProject(Project(id root, base: C:\Desenvolvimento\bireme\ZBMedPrePrints, plugins: List(<none>))) took 5.4969ms
+[debug] [Loading] Done in C:\Desenvolvimento\bireme\ZBMedPrePrints, returning: (root)
+[debug]     Load.loadUnit: loadedProjectsRaw took 156.8587ms
+[debug]     Load.loadUnit: cleanEvalClasses took 9.3371ms
+[debug]   Load.loadUnit(file:/C:/Desenvolvimento/bireme/ZBMedPrePrints/, ...) took 465.0158ms
+[debug] Load.apply: load took 466.2187ms
+[debug] Load.apply: resolveProjects took 0.0912ms
+[debug] Load.apply: finalTransforms took 7.3903ms
+[debug] Load.apply: config.delegates took 0.2998ms
+[debug] Load.apply: Def.make(settings)... took 42.5215ms
+[debug] Load.apply: structureIndex took 21.5613ms
+[debug] Load.apply: mkStreams took 0.002ms
+[info] set current project to ZBMedPrePrints (in build file:/C:/Desenvolvimento/bireme/ZBMedPrePrints/)
+[debug] > Exec(sbtPopOnFailure, None, None)
+[debug] > Exec(resumeFromFailure, None, None)
+[debug] > Exec(notifyUsersAboutShell, None, None)
+[debug] > Exec(iflast shell, None, None)
+[debug] > Exec(runMain org.bireme.processing.extractLoad.ZBMedPre2Mongo -database:ZBMEDPPRINTT -collection:preprintsfullT --reset -fromDate:2023-08-15 -host:localhost --importByMonth, None, None)
+[debug] Evaluating tasks: Compile / runMain
+[debug] Running task... Cancel: Signal, check cycles: false, forcegc: true
+[info] compiling 1 Scala source to C:\Desenvolvimento\bireme\ZBMedPrePrints\target\scala-2.13\classes ...
+[info] done compiling
