@@ -134,26 +134,31 @@ object ZBMedPre2Mongo extends App {
       val startDate: Date = new Date()
       logger.info(s"Import started - ZBMed preprints $startDate")
 
-      val writerParameter: mdwParameters = mdwParameters(wParams.database, wParams.collection, wParams.reset,
-        addUpdDate=true, idField=Some("id"), wParams.host, wParams.port, wParams.user, wParams.password)
-
       val mongoReaderDECS: MongoDbReader = new MongoDbReader(rParamDECS)
       val mongoReader: MongoDbReader = new MongoDbReader(rParamTmp)
 
-      if (mongoReader.collectionExists()){
-        mongoReader.renameColl(wParams.collection, wParams.collection.concat("_before"))
-        val qtdCollTmp: Int = mongoReader.countDocuments(wParams.collection.concat("_before"))
+      if (mongoReader.collectionExists(wParams.collection)){
+        val qtdColl: Int = mongoReader.countDocuments(wParams.collection)
 
+        val writerParameter: mdwParameters = mdwParameters(wParams.database, wParams.collection.concat("_after"),
+          wParams.reset, addUpdDate = true, idField = Some("id"), wParams.host, wParams.port, wParams.user, wParams.password)
         val mongoWriter: MongoDbWriter = new MongoDbWriter(writerParameter)
+
         importZBMed(wParams, formatter, mongoReaderDECS, mongoWriter)
-        val qtdColl: Int = mongoReader.countDocuments()
+        val qtdCollAfter: Int = mongoReader.countDocuments(wParams.collection.concat("_after"))
         mongoWriter.close()
 
-        if (qtdCollTmp > qtdColl) {
+        if (qtdColl > qtdCollAfter) {
           flushAndEnd(wParams, startDate, mongoReader, mongoReaderDECS)
-        } else mongoReader.dropColl(wParams.collection.concat("_before"))
-
+        } else if (qtdColl < qtdCollAfter) {
+          mongoReader.dropColl(wParams.collection)
+          mongoReader.renameColl(oldNameColl = wParams.collection.concat("_after"), newNameColl = wParams.collection)
+        } else mongoReader.dropColl(wParams.collection.concat("_after"))
       } else {
+
+        val writerParameter: mdwParameters = mdwParameters(wParams.database, wParams.collection,
+          wParams.reset, addUpdDate = true, idField = Some("id"), wParams.host, wParams.port, wParams.user, wParams.password)
+
         val mongoWriter: MongoDbWriter = new MongoDbWriter(writerParameter)
         importZBMed(wParams, formatter, mongoReaderDECS, mongoWriter)
         mongoWriter.close()
@@ -167,8 +172,7 @@ object ZBMedPre2Mongo extends App {
 
   private def flushAndEnd(wParams: WriteParameters, startDate: Date, mongoReader: MongoDbReader, mongoReaderDECS: MongoDbReader): Unit = {
 
-    mongoReader.dropColl(wParams.collection)
-    mongoReader.renameColl(wParams.collection.concat("_before"), wParams.collection)
+    mongoReader.dropColl(wParams.collection.concat("_after"))
     mongoReader.close()
     mongoReaderDECS.close()
     logger.error(s"Importing documents with a quantity lower than the previous processing!")
