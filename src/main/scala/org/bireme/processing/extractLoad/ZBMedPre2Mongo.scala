@@ -1,13 +1,13 @@
 package org.bireme.processing.extractLoad
 
 import ch.qos.logback.classic.ClassicConstants
-import org.bireme.processing.tools.mrw.{MongoDbReader, MongoDbWriter, mdrParameters, mdwParameters}
+import org.bireme.processing.tools.mrw.{MongoDBTools, MongoDbReader, MongoDbWriter, mdrParameters, mdwParameters}
 import org.slf4j.{Logger, LoggerFactory}
 import play.api.libs.json._
 
 import java.net.URI
 import java.net.http.{HttpClient, HttpRequest, HttpResponse}
-import java.time.LocalDate
+import java.time.{LocalDate, Year}
 import java.time.format.DateTimeFormatter
 import java.util.Date
 import scala.annotation.tailrec
@@ -25,6 +25,8 @@ object ZBMedPre2Mongo extends App {
     System.err.println("options:")
     System.err.println("\t-database:<name>       - MongoDB database name")
     System.err.println("\t-collection:<name>     - MongoDB database collection name")
+    System.err.println("\t[-decsDatabase:<name>] - MongoDB DeCS database name. Default is 'DECS'")
+    System.err.println("\t[-decsCollection:<name>]  - MongoDB DeCS database collection name. Default is the current year")
     System.err.println("\t[(-fromDate:<yyyy-mm-dd> | -daysBefore:<days>)] - initial date or number of days before today")
     System.err.println("\t[-toDate:<yyyy-mm-dd>] - end date. Default is today")
     System.err.println("\t[-quantity:<num>]      - number of preprints to import. Default is unlimited")
@@ -66,17 +68,22 @@ object ZBMedPre2Mongo extends App {
 
   if (!Set("database", "collection").forall(parameters.contains)) usage()
 
-  private val decsCollection = "2023" //"2022"
-
   private val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
+  val database: String = parameters.getOrElse("decsDatabase", "DECS")
+  val host: Option[String] = parameters.get("host")
+  val port: Option[Int] = parameters.get("port").map(_.toInt)
+  val user: Option[String] = parameters.get("user")
+  val password: Option[String] = parameters.get("password")
+  val collection: String = parameters.getOrElse("decsCollection",
+                                                getDecsCollection(database, host, port, user, password))
   private val rParamDECS = mdrParameters(
-    database = "DECS",
-    collection = decsCollection,
-    host = parameters.get("host"),
-    port = parameters.get("port").map(_.toInt),
-    user = parameters.get("user"),
-    password = parameters.get("password"),
+    database = database,
+    host = host,
+    port = port,
+    user = user,
+    password = password,
+    collection = collection,
     bufferSize = Some(1),  // DeCS one document per id
     outputFields = Some(Set("Descritor Inglês", "Descritor Espanhol", "Descritor Português", "Descritor Francês", "Mfn"))
   )
@@ -124,6 +131,20 @@ object ZBMedPre2Mongo extends App {
     case Failure(exception) =>
       logger.error(s"Importing documents ERROR: ${exception.getMessage}")
       System.exit(1)
+  }
+
+  private def getDecsCollection(database: String,
+                                host: Option[String],
+                                port: Option[Int],
+                                user: Option[String],
+                                password: Option[String]) : String = {
+    // Supposing the collections' names are only years (2023, 2024, etc)
+    MongoDBTools.listCollections(database, host, port, user, password).map {
+      set => set.map(_.toInt)
+    }.map(_.max).map(_.toString) match {
+      case Success(year) => year
+      case Failure(_) => Year.now().getValue.toString   // If some problem occurred, take the current year
+    }
   }
 
   private def importPreprints(rParamDECS: mdrParameters,

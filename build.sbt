@@ -1,6 +1,6 @@
 ThisBuild / version := "0.1.0-SNAPSHOT"
 
-ThisBuild / scalaVersion := "2.13.10"
+ThisBuild / scalaVersion := "2.13.12" //"2.13.10"
 
 lazy val root = (project in file("."))
   .settings(
@@ -9,15 +9,15 @@ lazy val root = (project in file("."))
     Test / fork := true
   )
 
-val xmlVersion = "2.1.0"
-val mongoVersion = "4.9.0"
-val logback = "1.4.7"
+val xmlVersion = "2.2.0" //"2.1.0"
+val mongoVersion = "4.11.0" //"4.9.0"
+val logback = "1.4.11" //"1.4.7"
 val logging = "3.9.5"
-val scalatest = "3.2.15"
+val scalatest = "3.2.17" //"3.2.15"
 val gsonVersion = "2.10.1"
 val jsonOrgVersion = "20220924"
 val httpClientVersion = "5.2.1"
-val playJsonVersion = "2.10.0-RC7"
+val playJsonVersion = "2.10.2" //"2.10.0-RC7"
 
 libraryDependencies ++= Seq(
   "org.scala-lang.modules" %% "scala-xml" % xmlVersion,
