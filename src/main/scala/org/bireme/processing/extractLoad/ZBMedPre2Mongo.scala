@@ -23,7 +23,7 @@ object ZBMedPre2Mongo extends App {
     System.err.println("Import preprints articles from ZBMed API into a MongoDB collection")
     System.err.println("usage: ZBMedPre2Mongo <options>")
     System.err.println("options:")
-    System.err.println("\t-database:<name>       - MongoDB database name")
+    System.err.println("\t-database:<name>       - MongoDB database collection name")
     System.err.println("\t-collection:<name>     - MongoDB database collection name")
     System.err.println("\t[-decsDatabase:<name>] - MongoDB DeCS database name. Default is 'DECS'")
     System.err.println("\t[-decsCollection:<name>]  - MongoDB DeCS database collection name. Default is the current year")
