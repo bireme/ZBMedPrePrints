@@ -25,3 +25,7 @@ This project retrieves documents through an API provided by ZBMED, stores them i
 Navigate to the 'bin' directory with permissions and run the 'ZBMedPre2Mongo.sh' script:
 
         .../bin $ ./ZBMedPre2Mongo.sh
+
+### Architecture Diagram - ZBMed
+
+![img.png](img.png)
