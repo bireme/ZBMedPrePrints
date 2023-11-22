@@ -35,7 +35,7 @@ object ZBMedPre2Mongo extends App {
     System.err.println("\t[-port:<number>]       - MongoDB server port number. Default value is 27017")
     System.err.println("\t[-user:<name>])        - MongoDB user name. Default is not to use an user")
     System.err.println("\t[-password:<pwd>]      - MongoDB user password. Default is not to use an password")
-    System.err.println("\t[-indexName=<string>]  - parameter to determine the name of the field that will take on the role of collection index")
+    System.err.println("\t[-indexName=<name>]  - parameter to determine the name of the field that will take on the role of collection index")
     System.err.println("\t[--reset]              - initializes the MongoDB collection if it is not empty")
     System.err.println("\t[--importByMonth]      - if present, the system will load documents month by month")
     System.err.println("\t[--checkRepeatable]    - if present, the system will check if the document was not already inserted (id check)")

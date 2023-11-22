@@ -28,7 +28,7 @@ object ZBMedMongo2XML {
     System.err.println("[-userWrite=<name>])      - MongoDB user name Normalized")
     System.err.println("[-passwordWrite=<pwd>]    - MongoDB user password Normalized")
     System.err.println("[--append]                - If present, will compose the collection without clearing it first")
-    System.err.println("[-indexName=<string>]     - parameter to determine the name of the field that will take on the role of collection index")
+    System.err.println("[-indexName=<name>]     - parameter to determine the name of the field that will take on the role of collection index")
     System.exit(1)
   }
 
