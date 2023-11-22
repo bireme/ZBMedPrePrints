@@ -2,7 +2,7 @@ package org.bireme.processing.tools.mrw
 
 import com.mongodb.MongoNamespace
 import com.mongodb.client.{MongoClient, MongoClients, MongoCollection, MongoDatabase}
-import com.mongodb.client.model.{Filters, Indexes}
+import com.mongodb.client.model.{Filters}
 import org.bson.Document
 import org.slf4j.{Logger, LoggerFactory}
 
@@ -16,8 +16,7 @@ case class mdrParameters(database: String,
                          password: Option[String] = None,
                          bufferSize: Option[Int] = None,
                          quantity: Option[Int] = None,
-                         outputFields: Option[Set[String]] = None,
-                         indexName: Option[String] = None)
+                         outputFields: Option[Set[String]] = None)
 
 class MongoDbReader(params: mdrParameters) {
 
@@ -40,17 +39,6 @@ class MongoDbReader(params: mdrParameters) {
   private val mongoClient: MongoClient = MongoClients.create(mongoUri)
   private val dbase: MongoDatabase = mongoClient.getDatabase(params.database)
   private val coll: MongoCollection[Document] = dbase.getCollection(params.collection)
-
-
-  params.indexName match {
-    case Some(index_name) => coll.createIndex(Indexes.ascending(index_name))
-      val cursor = coll.listIndexes().cursor()
-      while (cursor.hasNext){
-        val nameIndex = cursor.next()
-        logger.info(s"-Field index defined: ${nameIndex.get("name")}")
-      }
-    case None => None
-  }
 
   def createCollection(nameCollection: String): Unit = {
     dbase.createCollection(nameCollection)

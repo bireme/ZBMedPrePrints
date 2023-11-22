@@ -32,7 +32,7 @@ class ZBMedExportXML {
       val passwordWrite: Option[String] = parameters.passwordWrite orElse parameters.passwordRead
 
       val paramsWrite: mdwParameters = mdwParameters(databaseWrite, collectionWrite, clear = true, addUpdDate = true, idField = None,
-        hostWrite, portWrite, userWrite, passwordWrite)
+        hostWrite, portWrite, userWrite, passwordWrite, parameters.indexName)
       val mExportWrite: MongoDbWriter = new MongoDbWriter(paramsWrite)
 
       val docsMongo: Seq[Map[String, AnyRef]] = mExportRead.iterator().get.toSeq

@@ -35,9 +35,11 @@ object ZBMedPre2Mongo extends App {
     System.err.println("\t[-port:<number>]       - MongoDB server port number. Default value is 27017")
     System.err.println("\t[-user:<name>])        - MongoDB user name. Default is not to use an user")
     System.err.println("\t[-password:<pwd>]      - MongoDB user password. Default is not to use an password")
+    System.err.println("\t[-indexName=<string>]  - parameter to determine the name of the field that will take on the role of collection index")
     System.err.println("\t[--reset]              - initializes the MongoDB collection if it is not empty")
     System.err.println("\t[--importByMonth]      - if present, the system will load documents month by month")
     System.err.println("\t[--checkRepeatable]    - if present, the system will check if the document was not already inserted (id check)")
+
     System.exit(1)
   }
 
@@ -53,8 +55,8 @@ object ZBMedPre2Mongo extends App {
                                      password: Option[String],
                                      reset: Boolean,
                                      importByMonth: Boolean,
-                                     checkRepeatable: Boolean
-                                    )
+                                     checkRepeatable: Boolean,
+                                     indexName: Option[String])
 
   //def main(args: Array[String]): Unit =
   if (args.length < 2) usage()
@@ -110,7 +112,8 @@ object ZBMedPre2Mongo extends App {
     password = parameters.get("password"),
     reset = parameters.contains("reset"),
     importByMonth = parameters.contains("importByMonth"),
-    checkRepeatable = parameters.contains("checkRepeatable")
+    checkRepeatable = parameters.contains("checkRepeatable"),
+    indexName = parameters.get("indexName")
   )
 
   private val rParamTmp = mdrParameters(
@@ -162,7 +165,7 @@ object ZBMedPre2Mongo extends App {
         val qtdColl: Int = mongoReader.countDocuments(wParams.collection)
 
         val writerParameter: mdwParameters = mdwParameters(wParams.database, wParams.collection.concat("_after"),
-          wParams.reset, addUpdDate = true, idField = Some("id"), wParams.host, wParams.port, wParams.user, wParams.password)
+          wParams.reset, addUpdDate = true, idField = Some("id"), wParams.host, wParams.port, wParams.user, wParams.password, wParams.indexName)
         val mongoWriter: MongoDbWriter = new MongoDbWriter(writerParameter)
 
         importZBMed(wParams, formatter, mongoReaderDECS, mongoWriter)
@@ -178,7 +181,7 @@ object ZBMedPre2Mongo extends App {
       } else {
 
         val writerParameter: mdwParameters = mdwParameters(wParams.database, wParams.collection,
-          wParams.reset, addUpdDate = true, idField = Some("id"), wParams.host, wParams.port, wParams.user, wParams.password)
+          wParams.reset, addUpdDate = true, idField = Some("id"), wParams.host, wParams.port, wParams.user, wParams.password, wParams.indexName)
 
         val mongoWriter: MongoDbWriter = new MongoDbWriter(writerParameter)
         importZBMed(wParams, formatter, mongoReaderDECS, mongoWriter)
