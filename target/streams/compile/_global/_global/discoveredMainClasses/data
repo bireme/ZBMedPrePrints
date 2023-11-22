@@ -1,1 +1,0 @@
-["org.bireme.processing.extractLoad.ZBMedPre2Mongo","org.bireme.processing.tools.mrw.MongoDbReader","org.bireme.processing.tools.mrw.MongoDbWriter","org.bireme.processing.transform.ZBMedMongo2XML"]

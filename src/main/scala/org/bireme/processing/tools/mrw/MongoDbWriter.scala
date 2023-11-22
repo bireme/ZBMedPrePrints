@@ -20,7 +20,8 @@ case class mdwParameters(database: String,
                          host: Option[String] = None,
                          port: Option[Int] = None,
                          user: Option[String] = None,
-                         password: Option[String] = None)
+                         password: Option[String] = None,
+                         indexName: Option[String] = None)
 
 class MongoDbWriter(params: mdwParameters) {
 
@@ -48,15 +49,12 @@ class MongoDbWriter(params: mdwParameters) {
     } else dbase.getCollection(params.collection)
   }
 
-//  params.idField match {
-//    case Some(index_name) => coll.createIndex(Indexes.ascending(index_name))
-//      val cursor = coll.listIndexes().cursor()
-//      while (cursor.hasNext) {
-//        val nameIndex = cursor.next()
-//        logger.info(s"* Field index defined: ${nameIndex.get("name")}")
-//      }
-//    case None => None
-//  }
+  params.indexName match {
+    case Some(index_name) =>
+      val listIndex: Set[String] = index_name.split(",").toSet
+      listIndex.foreach(index => coll.createIndex(Indexes.ascending(index)))
+    case None => None
+  }
 
   def drop() = {
     coll.drop()

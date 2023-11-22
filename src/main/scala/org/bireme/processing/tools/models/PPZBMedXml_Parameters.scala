@@ -13,4 +13,5 @@ case class PPZBMedXml_Parameters(xmlOut: String,
                                  portWrite: Option[Int],
                                  userWrite: Option[String],
                                  passwordWrite: Option[String],
-                                 append: Boolean)
+                                 append: Boolean,
+                                 indexName: Option[String])

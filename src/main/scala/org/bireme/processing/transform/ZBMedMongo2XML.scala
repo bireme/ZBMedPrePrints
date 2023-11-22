@@ -28,6 +28,7 @@ object ZBMedMongo2XML {
     System.err.println("[-userWrite=<name>])      - MongoDB user name Normalized")
     System.err.println("[-passwordWrite=<pwd>]    - MongoDB user password Normalized")
     System.err.println("[--append]                - If present, will compose the collection without clearing it first")
+    System.err.println("[-indexName=<string>]     - parameter to determine the name of the field that will take on the role of collection index")
     System.exit(1)
   }
 
@@ -59,9 +60,10 @@ object ZBMedMongo2XML {
     val userWrite: Option[String] = parameters.get("userWrite")
     val passwordWrite: Option[String] = parameters.get("passwordWrite")
     val append: Boolean = parameters.contains("append")
+    val indexName: Option[String] = parameters.get("indexName")
 
     val params: PPZBMedXml_Parameters = PPZBMedXml_Parameters(xmlOut, databaseRead, collectionRead, hostRead, portRead,
-      userRead, passwordRead, databaseWrite, collectionWrite, hostWrite, portWrite, userWrite, passwordWrite, append)
+      userRead, passwordRead, databaseWrite, collectionWrite, hostWrite, portWrite, userWrite, passwordWrite, append, indexName)
     val startDate: Date = new Date()
 
     (new ZBMedExportXML).exportXml(params) match {

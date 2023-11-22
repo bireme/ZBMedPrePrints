@@ -15,16 +15,16 @@ This project retrieves documents through an API provided by ZBMED, stores them i
 ```
 .
 ├── bin
-| ├── ZBMedPre2Mongo.sh
+| ├── run_process.sh
 ├── log.properties
 .
 ```
 
 ### Execution
 
-Navigate to the 'bin' directory with permissions and run the 'ZBMedPre2Mongo.sh' script:
+Navigate to the 'bin' directory with permissions and run the 'run_process.sh' script:
 
-        .../bin $ ./ZBMedPre2Mongo.sh
+        .../bin $ ./run_process.sh
 
 ### Architecture Diagram - ZBMed
 
