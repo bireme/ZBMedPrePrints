@@ -73,10 +73,10 @@ class MongoDbReader(params: mdrParameters) {
   }
 
   def iterator(query: Option[String] = None): Try[Iterator[Map[String, AnyRef]]] =
-    Try (new MongoIterator(query, coll, quantity, bufferSize, params.outputFields))
+    Try (new MongoDbIterator(query, coll, quantity, bufferSize, params.outputFields))
 
   def iteratorStr(query: Option[String] = None): Try[Iterator[Map[String, Array[String]]]] =
-    Try(new MongoIteratorStr(query, coll, quantity, bufferSize, params.outputFields))
+    Try(new MongoDbIteratorStr(query, coll, quantity, bufferSize, params.outputFields))
 
   def lazyList(query: Option[String] = None): Try[LazyList[Map[String, AnyRef]]] = {
     iterator(query).map {
