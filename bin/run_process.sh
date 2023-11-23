@@ -23,7 +23,7 @@ zbmedApi2mongodb() {
   CHECK_REPEATABLE="--checkRepeatable"                                      #- (--checkRepeatable)                  if present, the system will check if the document was not already inserted (id check)
   INDEXNAME="-indexName:id"                                                 #- (-indexName:<name>)                  parameter to determine the name of the field that will take on the role of collection index
 
-  $SBT_HOME/sbt "runMain org.bireme.processing.extractLoad.ZBMedPre2Mongo $CLASS_MAIN_ZBMED_API $DATABASE $COLLECTION $RESET $FROM_DATE $HOST $IMPORT_BY_MONTH $DECS_DATABASE $INDEXNAME"
+  $SBT_HOME/sbt "runMain org.bireme.processing.extractLoad.ZbmedToMongoDb $CLASS_MAIN_ZBMED_API $DATABASE $COLLECTION $RESET $FROM_DATE $HOST $IMPORT_BY_MONTH $DECS_DATABASE $INDEXNAME"
   ret="$?"
 }
 
@@ -46,7 +46,7 @@ mongodbZbmed2xml_serverProd() { # Executando para servidor: 172.17.1.230
   APPEND=""                                                                 #- (--append)           If present, will compose the collection without clearing it first
   INDEXNAME="-indexName=id"                                                 #- (-indexName=<name>)  parameter to determine the name of the field that will take on the role of collection index
 
-  $SBT_HOME/sbt "runMain org.bireme.processing.transform.ZBMedMongo2XML $CLASS_MAIN_ZBMED_XML $XML_OUT $DATABASE_READ $COLLECTION_READ $HOST_READ $HOST_WRITE $COLLECTION_WRITE $INDEXNAME"
+  $SBT_HOME/sbt "runMain org.bireme.processing.transform.ZbmedMongoDbToXml $CLASS_MAIN_ZBMED_XML $XML_OUT $DATABASE_READ $COLLECTION_READ $HOST_READ $HOST_WRITE $COLLECTION_WRITE $INDEXNAME"
 }
 
 mongodbZbmed2xml_miniMongo() { # Executando novamente para servidor: 200.10.179.230
@@ -67,7 +67,7 @@ mongodbZbmed2xml_miniMongo() { # Executando novamente para servidor: 200.10.179.
   APPEND_XML=""
   INDEXNAME_XML="-indexName=id"
 
-  $SBT_HOME/sbt "runMain org.bireme.processing.transform.ZBMedMongo2XML $CLASS_MAIN_ZBMED_XML $XML_OUT_BACKUP $DATABASE_READ_XML $COLLECTION_READ_XML $HOST_READ_XML $COLLECTION_WRITE_XML $HOST_WRITE_XML $INDEXNAME_XML"
+  $SBT_HOME/sbt "runMain org.bireme.processing.transform.ZbmedMongoDbToXml $CLASS_MAIN_ZBMED_XML $XML_OUT_BACKUP $DATABASE_READ_XML $COLLECTION_READ_XML $HOST_READ_XML $COLLECTION_WRITE_XML $HOST_WRITE_XML $INDEXNAME_XML"
 }
 
 # Diretório local do projeto
