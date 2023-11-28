@@ -20,7 +20,7 @@ zbmedApi2mongodb() {
   PORT=""                                                                   #- (-port:<number>)                     MongoDB server port number. Default value is 27017
   USER=""                                                                   #- (-user:<name>)                       MongoDB user name. Default is not to use an user
   PASSWORD=""                                                               #- (-password:<pwd>)                    MongoDB user password. Default is not to use an password
-  CHECK_REPEATABLE="--checkRepeatable"                                      #- (--checkRepeatable)                  if present, the system will check if the document was not already inserted (id check)
+  CHECK_REPEATABLE=""                                                       #- (--checkRepeatable)                  if present, the system will check if the document was not already inserted (id check)
   INDEXNAME="-indexName:id"                                                 #- (-indexName:<name>)                  parameter to determine the name of the field that will take on the role of collection index
 
   $SBT_HOME/sbt "runMain org.bireme.processing.extractLoad.ZbmedToMongoDb $CLASS_MAIN_ZBMED_API $DATABASE $COLLECTION $RESET $FROM_DATE $HOST $IMPORT_BY_MONTH $DECS_DATABASE $INDEXNAME"

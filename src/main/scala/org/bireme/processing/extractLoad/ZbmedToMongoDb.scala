@@ -173,6 +173,7 @@ object ZbmedToMongoDb extends App {
         mongoWriter.close()
 
         if (qtdColl > qtdCollAfter) {
+          logger.error(s"The document import has a quantity lower than the existing one, which is '$qtdColl'; processing not recorded in MongoDB")
           flushAndEnd(wParams, startDate, mongoReader, mongoReaderDECS)
         } else if (qtdColl < qtdCollAfter) {
           mongoReader.dropColl(wParams.collection)
@@ -199,7 +200,6 @@ object ZbmedToMongoDb extends App {
     mongoReader.dropColl(wParams.collection.concat("_after"))
     mongoReader.close()
     mongoReaderDECS.close()
-    logger.error(s"Importing documents with a quantity lower than the previous processing!")
     logger.info(timeAtProcessing(startDate))
     System.exit(1)
   }
